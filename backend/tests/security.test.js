@@ -17,8 +17,8 @@ import { hashPassword, comparePassword } from '../src/utils/password.js'
 import { generateToken, verifyToken } from '../src/utils/jwt.js'
 import { authenticate } from '../src/middleware/authenticate.js'
 import { requireRole } from '../src/middleware/requireRole.js'
-import { sendError } from '../src/utils/index.js'
 import http from 'node:http'
+import { URL } from 'node:url'
 
 // Load environment before importing app
 process.env.NODE_ENV = 'test'
@@ -360,7 +360,7 @@ describe('Swagger documentation', () => {
   })
 
   it('serves OpenAPI JSON spec', async () => {
-    const { statusCode, body } = await request('GET', '/api-docs/swagger.json')
+    const { statusCode } = await request('GET', '/api-docs/swagger.json')
     
     // swagger-jsdoc serves the spec at the same endpoint with query param
     // or we can check if the UI loads the spec

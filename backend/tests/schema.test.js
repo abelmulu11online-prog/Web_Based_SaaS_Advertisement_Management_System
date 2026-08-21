@@ -16,7 +16,7 @@
  */
 
 import 'dotenv/config'
-import { describe, it, before, after, beforeEach } from 'node:test'
+import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import pg from 'pg'
 
@@ -273,7 +273,7 @@ describe('Profile → User relationship', () => {
   })
 
   it('slug must be unique', async () => {
-    const { userId, profileId } = await makeFixtures('slug-uniq')
+    const { userId } = await makeFixtures('slug-uniq')
     const u2 = await one(`INSERT INTO users (email, password_hash) VALUES ('test-profile-slug-uniq2@x.com', 'h') RETURNING id`)
     const threw = await throws(
       () => one(`INSERT INTO profiles (user_id, display_name, slug) VALUES ($1, 'P2', 'test-provider-slug-uniq') RETURNING id`, [u2.id]),

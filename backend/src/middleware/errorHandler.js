@@ -27,6 +27,40 @@ export function errorHandler(err, req, res, next) {
     })
   }
 
+  // ── PostgreSQL unique constraint violations ───────────────────────────────────
+  if (err.code === '23505') {
+    // Extract constraint name from error message
+    const constraintMatch = err.message.match(/constraint "(.+?)"/)
+    const constraint = constraintMatch ? constraintMatch[1] : 'unknown'
+
+    // Map constraints to user-friendly error codes
+    if (constraint === 'users_email_key') {
+      logger.warn({ constraint }, 'Duplicate email attempt')
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email already exists',
+        error: { code: 'DUPLICATE_EMAIL' },
+      })
+    }
+
+    if (constraint === 'users_phone_key') {
+      logger.warn({ constraint }, 'Duplicate phone attempt')
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this phone number already exists',
+        error: { code: 'DUPLICATE_PHONE' },
+      })
+    }
+
+    // Generic duplicate error for other constraints
+    logger.warn({ constraint }, 'Duplicate constraint violation')
+    return res.status(409).json({
+      success: false,
+      message: 'A record with this information already exists',
+      error: { code: 'DUPLICATE_RECORD' },
+    })
+  }
+
   // ── Operational errors (intentionally thrown with statusCode + code) ─────────
   if (err.isOperational) {
     return res.status(err.statusCode || 400).json({
