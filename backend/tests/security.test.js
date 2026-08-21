@@ -11,7 +11,8 @@
  * Uses Node.js built-in test runner.
  */
 
-import { describe, it } from 'node:test'
+import 'dotenv/config'
+import { describe, it, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { hashPassword, comparePassword } from '../src/utils/password.js'
 import { generateToken, verifyToken } from '../src/utils/jwt.js'
@@ -23,7 +24,6 @@ import { URL } from 'node:url'
 // Load environment before importing app
 process.env.NODE_ENV = 'test'
 process.env.PORT = '0'
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:changeme@localhost:5432/local_discovery'
 process.env.CORS_ORIGINS = 'http://localhost:5173'
 process.env.JWT_SECRET = 'test-secret-for-testing'
 
@@ -80,9 +80,9 @@ await new Promise((resolve) => {
   })
 })
 
-// Cleanup
-process.on('exit', () => {
-  server.close()
+// Cleanup — close the server after all tests so the process can exit
+after(async () => {
+  await new Promise((resolve) => server.close(resolve))
 })
 
 describe('Password utility', () => {

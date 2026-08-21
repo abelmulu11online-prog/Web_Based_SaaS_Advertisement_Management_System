@@ -18,11 +18,12 @@ const emailSchema = z
 /**
  * Phone validation — expects international format (E.164).
  * Example: +1234567890 or +44 20 7123 4567
+ * Spaces are allowed and will be removed automatically.
  */
 const phoneSchema = z
   .string()
   .min(1, 'Phone is required')
-  .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone format. Use international format (e.g., +1234567890)')
+  .regex(/^\+?[1-9][\d\s]{1,14}$/, 'Invalid phone format. Use international format (e.g., +1234567890)')
   .transform((val) => val.replace(/\s/g, '')) // Remove spaces
 
 /**

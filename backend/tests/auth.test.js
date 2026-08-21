@@ -38,12 +38,16 @@ async function q(sql, params = []) {
 }
 
 async function cleanupTestUsers() {
+  // Scoped to this file's test users only (all use @example.com domain).
+  // Using @example.com prevents deleting schema.test.js fixtures (@x.com)
+  // when test files run concurrently against the same database.
+  //
   // Covers ALL test email/phone patterns used across every suite in this file:
   //   Auth Repository  → test-auth-*@example.com, +1234567890*
   //   Registration     → test-register-*, testregister@*, test-duplicate*, etc.
   //   Login Service    → test-login@example.com, +12345678913
   //   Security         → test-security*@example.com
-  await q('DELETE FROM users WHERE email LIKE $1', ['test%'])
+  await q('DELETE FROM users WHERE email LIKE $1', ['test%@example.com'])
   await q('DELETE FROM users WHERE phone LIKE $1', ['+123456789%'])
 }
 
