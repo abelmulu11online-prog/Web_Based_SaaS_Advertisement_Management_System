@@ -15,6 +15,7 @@
  * Each test group cleans up after itself to stay isolated.
  */
 
+import 'dotenv/config'
 import { describe, it, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import pg from 'pg'
@@ -23,9 +24,11 @@ import pg from 'pg'
 
 process.env.NODE_ENV = 'test'
 
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres:root@localhost:5432/local_discovery'
+const DATABASE_URL = process.env.DATABASE_URL
+if (!DATABASE_URL) {
+  console.error('[schema.test] DATABASE_URL is not set.')
+  process.exit(1)
+}
 
 const pool = new pg.Pool({ connectionString: DATABASE_URL })
 

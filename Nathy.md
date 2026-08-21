@@ -102,12 +102,14 @@ Added `createError(message, statusCode, code)` — creates a structured operatio
 Added a proper logger instead of relying on `console.log`. Pino writes structured JSON logs, which production log systems (CloudWatch, Datadog, etc.) can parse and query.
 
 Key features:
+
 - Redacts `Authorization` header, `cookie` header, `password`, `token` fields from every log line automatically — secrets never end up in log files
 - `debug` level in development, `info` in production
 
 #### `src/middleware/errorHandler.js` — Centralized error handler
 
 Completely rewrote it to:
+
 - Handle **Zod validation errors** with a structured `issues` array
 - Handle **JSON parse errors** (malformed request body) → `400 INVALID_JSON`
 - Handle **payload too large** → `413 PAYLOAD_TOO_LARGE`
@@ -124,7 +126,11 @@ Updated to use the standard error response format with `error.code: 'NOT_FOUND'`
 Reusable middleware that wraps any Zod schema and validates `req.body`, `req.query`, and `req.params` before they reach the controller. Future controllers just do:
 
 ```js
-router.post('/profiles', validate(createProfileSchema), profileController.create)
+router.post(
+  "/profiles",
+  validate(createProfileSchema),
+  profileController.create,
+);
 ```
 
 If validation fails, the request is rejected with `422 VALIDATION_ERROR` and a list of field-level issues before the controller even runs.
@@ -175,11 +181,11 @@ A proper module following the same controller/service/routes pattern as all futu
 
 #### Dependencies added in Task 1
 
-| Package | Version | Why |
-|---------|---------|-----|
-| `pino` | 10.3.1 | Structured JSON logging. Faster than Winston, built-in field redaction |
-| `pino-http` | 11.0.0 | HTTP request logging middleware that integrates with Pino |
-| `zod` | 4.4.3 | Schema validation. Type-safe, zero dependencies, great ESM support |
+| Package     | Version | Why                                                                    |
+| ----------- | ------- | ---------------------------------------------------------------------- |
+| `pino`      | 10.3.1  | Structured JSON logging. Faster than Winston, built-in field redaction |
+| `pino-http` | 11.0.0  | HTTP request logging middleware that integrates with Pino              |
+| `zod`       | 4.4.3   | Schema validation. Type-safe, zero dependencies, great ESM support     |
 
 ---
 
@@ -199,6 +205,7 @@ With the API foundation solid, the next step was designing and implementing the 
 A lightweight custom migration runner — no third-party library.
 
 How it works:
+
 1. Creates a `schema_migrations` table on first run (tracks what's been applied)
 2. Reads all `*.sql` files from `database/migrations/`, sorted by filename (so `001_` always runs before `002_`)
 3. Skips files already recorded in `schema_migrations`
@@ -208,6 +215,7 @@ How it works:
 Running it twice is completely safe — it just says "No pending migrations."
 
 Commands:
+
 ```bash
 npm run db:migrate          # run all pending migrations
 npm run db:migrate:status   # show which are applied / pending
@@ -220,6 +228,7 @@ Seeds **categories** and **services** only — no fake users, no fake profiles. 
 Safe to run repeatedly — uses `ON CONFLICT (slug) DO UPDATE`, so running it 10 times is the same as running it once.
 
 Seeded:
+
 - **40 categories** — 10 top-level + 30 subcategories
 - **30 services** — spread across Plumbing, Electrical, Cleaning, Phone Repair, Photography, Web Development, Hair Salons, Catering
 
@@ -266,6 +275,7 @@ CONSTRAINT users_has_contact CHECK (email IS NOT NULL OR phone IS NOT NULL)
 ```
 
 Key design decisions:
+
 - Every user must have at least `email` OR `phone` — the CHECK constraint enforces this at the database level, not just the application layer
 - `password_hash` is nullable to support future OAuth/social sign-in
 - `status = 'DELETED'` is a soft delete — we keep the row so foreign keys don't break
@@ -290,6 +300,7 @@ updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
 
 Structure after seeding:
+
 ```
 🏠 Home Services
    ├── Plumbing
@@ -381,6 +392,7 @@ updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
 
 Key design decisions:
+
 - `user_id` has a `UNIQUE INDEX` — one user, one profile for now. This constraint can be dropped in one migration if multi-profile support is needed later.
 - `ON DELETE CASCADE` on `user_id` — deleting a user deletes their profile and everything attached to it
 - `ON DELETE RESTRICT` on `category_id` — you cannot delete a category that has profiles pointing to it. Protects data integrity.
@@ -409,6 +421,7 @@ updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
 
 Services seeded (30 total, examples):
+
 - Plumbing: Pipe Repair, Drain Cleaning, Water Heater Installation, Bathroom Plumbing, Leak Detection
 - Electrical: House Wiring, Electrical Repair, Solar Panel Installation, Generator Installation
 - Cleaning: Home Cleaning, Office Cleaning, Deep Cleaning, Laundry Service
@@ -500,46 +513,46 @@ A partial index on `is_primary = TRUE` makes fetching the cover image for any pr
 
 This is important to understand before writing any DELETE queries:
 
-| Operation | Behavior |
-|-----------|----------|
-| Delete a **user** | Cascades → deletes their profile, which cascades to hours, social links, images, and service links |
-| Delete a **profile** | Cascades → business_hours, social_links, profile_images, profile_services |
-| Delete a **category** that has profiles | **RESTRICTED** — will error. Remove profiles first. |
-| Delete a **category** that has subcategories | **RESTRICTED** — will error. Remove children first. |
-| Delete a **service** that profiles use | **RESTRICTED** — will error. Remove from profile_services first. |
-| Delete a **location** | Profile's `location_id` becomes NULL (SET NULL) |
+| Operation                                    | Behavior                                                                                           |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Delete a **user**                            | Cascades → deletes their profile, which cascades to hours, social links, images, and service links |
+| Delete a **profile**                         | Cascades → business_hours, social_links, profile_images, profile_services                          |
+| Delete a **category** that has profiles      | **RESTRICTED** — will error. Remove profiles first.                                                |
+| Delete a **category** that has subcategories | **RESTRICTED** — will error. Remove children first.                                                |
+| Delete a **service** that profiles use       | **RESTRICTED** — will error. Remove from profile_services first.                                   |
+| Delete a **location**                        | Profile's `location_id` becomes NULL (SET NULL)                                                    |
 
 ---
 
 ### Indexes Created (28 total)
 
-| Table | Index | Why |
-|-------|-------|-----|
-| users | `idx_users_email` (partial) | Login lookup, uniqueness check |
-| users | `idx_users_phone` (partial) | Phone login lookup |
-| users | `idx_users_status` | Filter active/suspended users |
-| users | `idx_users_role` | Filter admins |
-| categories | `idx_categories_parent_id` | Fetch children of a category |
-| categories | `idx_categories_slug` | Lookup by slug |
-| categories | `idx_categories_is_active` | Filter active categories |
-| locations | `idx_locations_city` | Filter by city |
-| locations | `idx_locations_region` | Filter by region |
-| locations | `idx_locations_country` | Filter by country |
-| locations | `idx_locations_lat_lng` | Composite geo queries (pre-PostGIS) |
-| profiles | `idx_profiles_user_id` (unique) | One profile per user, direct lookup |
-| profiles | `idx_profiles_slug` | Public URL lookup `/p/{slug}` |
-| profiles | `idx_profiles_category_id` | Filter by category |
-| profiles | `idx_profiles_location_id` | Filter by location |
-| profiles | `idx_profiles_is_published` (partial) | Discovery — only published profiles |
-| profiles | `idx_profiles_is_verified` (partial) | Filter verified providers |
-| services | `idx_services_category_id` | Services in a category |
-| services | `idx_services_slug` | Lookup by slug |
-| services | `idx_services_is_active` | Filter active services |
-| profile_services | `idx_profile_services_service_id` | Which profiles offer a service |
-| business_hours | `idx_business_hours_profile_id` | All hours for a profile |
-| social_links | `idx_social_links_profile_id` | All links for a profile |
-| profile_images | `idx_profile_images_profile_id` | All images for a profile |
-| profile_images | `idx_profile_images_primary` (partial) | Fast primary image fetch |
+| Table            | Index                                  | Why                                 |
+| ---------------- | -------------------------------------- | ----------------------------------- |
+| users            | `idx_users_email` (partial)            | Login lookup, uniqueness check      |
+| users            | `idx_users_phone` (partial)            | Phone login lookup                  |
+| users            | `idx_users_status`                     | Filter active/suspended users       |
+| users            | `idx_users_role`                       | Filter admins                       |
+| categories       | `idx_categories_parent_id`             | Fetch children of a category        |
+| categories       | `idx_categories_slug`                  | Lookup by slug                      |
+| categories       | `idx_categories_is_active`             | Filter active categories            |
+| locations        | `idx_locations_city`                   | Filter by city                      |
+| locations        | `idx_locations_region`                 | Filter by region                    |
+| locations        | `idx_locations_country`                | Filter by country                   |
+| locations        | `idx_locations_lat_lng`                | Composite geo queries (pre-PostGIS) |
+| profiles         | `idx_profiles_user_id` (unique)        | One profile per user, direct lookup |
+| profiles         | `idx_profiles_slug`                    | Public URL lookup `/p/{slug}`       |
+| profiles         | `idx_profiles_category_id`             | Filter by category                  |
+| profiles         | `idx_profiles_location_id`             | Filter by location                  |
+| profiles         | `idx_profiles_is_published` (partial)  | Discovery — only published profiles |
+| profiles         | `idx_profiles_is_verified` (partial)   | Filter verified providers           |
+| services         | `idx_services_category_id`             | Services in a category              |
+| services         | `idx_services_slug`                    | Lookup by slug                      |
+| services         | `idx_services_is_active`               | Filter active services              |
+| profile_services | `idx_profile_services_service_id`      | Which profiles offer a service      |
+| business_hours   | `idx_business_hours_profile_id`        | All hours for a profile             |
+| social_links     | `idx_social_links_profile_id`          | All links for a profile             |
+| profile_images   | `idx_profile_images_profile_id`        | All images for a profile            |
+| profile_images   | `idx_profile_images_primary` (partial) | Fast primary image fetch            |
 
 ---
 
@@ -549,33 +562,33 @@ Tests use **Node.js built-in test runner** (`node:test`) — zero extra dependen
 
 ### `tests/api.test.js` — API Foundation Tests (8 tests)
 
-| Test | What it checks |
-|------|---------------|
-| Health endpoint shape (200 or 503) | Correct HTTP status, `success`/`message`/`data` fields present |
-| Health connected/disconnected response | Correct values based on DB state |
-| 404 for unknown routes | `NOT_FOUND` code, correct shape |
-| 404 for completely unknown paths | Same |
-| Malformed JSON → 400 | `INVALID_JSON` code, no crash |
-| Response format — success | All 3 required fields present |
-| Response format — error | All 3 required fields + `error.code` present |
-| Helmet security headers | `x-content-type-options` header present |
+| Test                                   | What it checks                                                 |
+| -------------------------------------- | -------------------------------------------------------------- |
+| Health endpoint shape (200 or 503)     | Correct HTTP status, `success`/`message`/`data` fields present |
+| Health connected/disconnected response | Correct values based on DB state                               |
+| 404 for unknown routes                 | `NOT_FOUND` code, correct shape                                |
+| 404 for completely unknown paths       | Same                                                           |
+| Malformed JSON → 400                   | `INVALID_JSON` code, no crash                                  |
+| Response format — success              | All 3 required fields present                                  |
+| Response format — error                | All 3 required fields + `error.code` present                   |
+| Helmet security headers                | `x-content-type-options` header present                        |
 
 ### `tests/schema.test.js` — Database Schema Tests (48 tests)
 
-| Suite | Tests |
-|-------|-------|
-| Tables exist | All 10 tables verified to exist |
-| UUID primary keys | UUIDs are auto-generated and valid format |
-| users table | Email uniqueness, phone uniqueness, contact CHECK, role CHECK, status CHECK, default role |
-| categories table | Slug uniqueness, self-reference, invalid parent_id rejected, is_active default |
-| locations table | Full row insert, latitude range CHECK, longitude range CHECK |
-| Profile → User relationship | Link correct, slug unique, is_published default, is_verified default, category join, location join, user cascade |
-| Category delete restriction | Cannot delete category with profiles referencing it |
-| Profile ↔ Services many-to-many | Multiple services per profile, cascade on profile delete, duplicate rejected |
-| Business hours | Full week insert, unique(profile_id, day_of_week), day_of_week CHECK, cascade on profile delete |
-| Social links | Unique per platform, platform CHECK, cascade on profile delete |
-| Profile images | Multiple images, is_primary default, cascade on profile delete |
-| Seed data sanity | Top-level categories exist, plumbing → home-services hierarchy, pipe-repair → plumbing, ≥20 services |
+| Suite                           | Tests                                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Tables exist                    | All 10 tables verified to exist                                                                                  |
+| UUID primary keys               | UUIDs are auto-generated and valid format                                                                        |
+| users table                     | Email uniqueness, phone uniqueness, contact CHECK, role CHECK, status CHECK, default role                        |
+| categories table                | Slug uniqueness, self-reference, invalid parent_id rejected, is_active default                                   |
+| locations table                 | Full row insert, latitude range CHECK, longitude range CHECK                                                     |
+| Profile → User relationship     | Link correct, slug unique, is_published default, is_verified default, category join, location join, user cascade |
+| Category delete restriction     | Cannot delete category with profiles referencing it                                                              |
+| Profile ↔ Services many-to-many | Multiple services per profile, cascade on profile delete, duplicate rejected                                     |
+| Business hours                  | Full week insert, unique(profile_id, day_of_week), day_of_week CHECK, cascade on profile delete                  |
+| Social links                    | Unique per platform, platform CHECK, cascade on profile delete                                                   |
+| Profile images                  | Multiple images, is_primary default, cascade on profile delete                                                   |
+| Seed data sanity                | Top-level categories exist, plumbing → home-services hierarchy, pipe-repair → plumbing, ≥20 services             |
 
 **Results: 56/56 tests pass, 0 failures, ESLint clean.**
 
@@ -679,17 +692,17 @@ Every response from this API follows one of two shapes:
 
 ## Dependencies (All Pinned)
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `express` | 4.22.2 | HTTP framework |
-| `cors` | 2.8.6 | CORS middleware |
-| `helmet` | 7.2.0 | Security headers |
-| `dotenv` | 16.6.1 | `.env` loading |
-| `pg` | 8.23.0 | PostgreSQL client (node-postgres) |
-| `pino` | 10.3.1 | Structured JSON logging |
-| `pino-http` | 11.0.0 | HTTP request logging |
-| `zod` | 4.4.3 | Schema validation |
-| `eslint` | 9.39.5 | Linting (dev) |
+| Package     | Version | Purpose                           |
+| ----------- | ------- | --------------------------------- |
+| `express`   | 4.22.2  | HTTP framework                    |
+| `cors`      | 2.8.6   | CORS middleware                   |
+| `helmet`    | 7.2.0   | Security headers                  |
+| `dotenv`    | 16.6.1  | `.env` loading                    |
+| `pg`        | 8.23.0  | PostgreSQL client (node-postgres) |
+| `pino`      | 10.3.1  | Structured JSON logging           |
+| `pino-http` | 11.0.0  | HTTP request logging              |
+| `zod`       | 4.4.3   | Schema validation                 |
+| `eslint`    | 9.39.5  | Linting (dev)                     |
 
 ---
 
@@ -721,6 +734,7 @@ CREATE DATABASE local_discovery;
 If you're using pgAdmin, right-click Databases → Create → Database → name it `local_discovery`.
 
 If you have `psql` in your PATH:
+
 ```bash
 psql -U postgres -c "CREATE DATABASE local_discovery;"
 ```
@@ -757,6 +771,7 @@ npm run db:migrate
 ```
 
 Expected output:
+
 ```
 [migrate] Running 9 pending migration(s)...
 [migrate]   → 001_create_users.sql          ✓
@@ -778,6 +793,7 @@ npm run db:seed
 ```
 
 Expected output:
+
 ```
 [seed] Seeding categories...
 [seed]   ✓ 40 categories
@@ -808,6 +824,7 @@ npm run dev
 ```
 
 You should see:
+
 ```json
 {"level":30,"msg":"Server listening on http://localhost:3000","port":3000,"env":"development"}
 {"level":30,"msg":"PostgreSQL connection verified"}
@@ -820,6 +837,7 @@ GET http://localhost:3000/api/health
 ```
 
 Should return:
+
 ```json
 {
   "success": true,
@@ -835,31 +853,31 @@ Should return:
 
 ## Package Scripts Reference
 
-| Script | Command | What it does |
-|--------|---------|-------------|
-| `npm run dev` | `node --watch src/server.js` | Start dev server with auto-restart |
-| `npm start` | `node src/server.js` | Start production server |
-| `npm test` | `node --test tests/api.test.js tests/schema.test.js` | Run all tests |
-| `npm run lint` | `eslint src/` | Check for code issues |
-| `npm run db:migrate` | `node database/migrate.js` | Run pending migrations |
-| `npm run db:migrate:status` | `node database/migrate.js --status` | Show migration state |
-| `npm run db:seed` | `node database/seed.js` | Seed categories and services |
+| Script                      | Command                                              | What it does                       |
+| --------------------------- | ---------------------------------------------------- | ---------------------------------- |
+| `npm run dev`               | `node --watch src/server.js`                         | Start dev server with auto-restart |
+| `npm start`                 | `node src/server.js`                                 | Start production server            |
+| `npm test`                  | `node --test tests/api.test.js tests/schema.test.js` | Run all tests                      |
+| `npm run lint`              | `eslint src/`                                        | Check for code issues              |
+| `npm run db:migrate`        | `node database/migrate.js`                           | Run pending migrations             |
+| `npm run db:migrate:status` | `node database/migrate.js --status`                  | Show migration state               |
+| `npm run db:seed`           | `node database/seed.js`                              | Seed categories and services       |
 
 ---
 
 ## What's Already Live
 
-| Route | Status | Description |
-|-------|--------|-------------|
-| `GET /api/health` | ✅ Live | API + database health check |
-| `POST /api/auth/*` | 🔲 Stub | Phase 4 — Authentication |
-| `GET/PUT /api/users/*` | 🔲 Stub | Phase 4 — User profiles |
+| Route                            | Status  | Description                 |
+| -------------------------------- | ------- | --------------------------- |
+| `GET /api/health`                | ✅ Live | API + database health check |
+| `POST /api/auth/*`               | 🔲 Stub | Phase 4 — Authentication    |
+| `GET/PUT /api/users/*`           | 🔲 Stub | Phase 4 — User profiles     |
 | `GET/POST/PUT/DELETE /api/ads/*` | 🔲 Stub | Phase 5 — Provider listings |
-| `GET /api/subscriptions/*` | 🔲 Stub | Phase 6 — Plans & billing |
-| `GET /api/locations/*` | 🔲 Stub | Phase 7 — Maps & geocoding |
-| `GET /api/admin/*` | 🔲 Stub | Phase 8 — Admin dashboard |
-| `GET /api/analytics/*` | 🔲 Stub | Phase 9 — Listing analytics |
-| `GET/PUT /api/notifications/*` | 🔲 Stub | Future phase |
+| `GET /api/subscriptions/*`       | 🔲 Stub | Phase 6 — Plans & billing   |
+| `GET /api/locations/*`           | 🔲 Stub | Phase 7 — Maps & geocoding  |
+| `GET /api/admin/*`               | 🔲 Stub | Phase 8 — Admin dashboard   |
+| `GET /api/analytics/*`           | 🔲 Stub | Phase 9 — Listing analytics |
+| `GET/PUT /api/notifications/*`   | 🔲 Stub | Future phase                |
 
 ---
 
@@ -893,15 +911,15 @@ Do **not** log passwords or tokens — the logger has automatic redaction for `p
 
 ## Known Decisions to Revisit Later
 
-| Decision | Current State | When to revisit |
-|----------|--------------|----------------|
-| One profile per user | `UNIQUE INDEX` on `profiles.user_id` | If multi-profile support is needed, drop the unique index |
-| `day_of_week` 0-6 (Sunday-based) | JS `Date.getDay()` convention | Documented — frontend should match |
-| PostGIS geo search | Plain `NUMERIC` lat/lng for now | When "find providers within X km" is built — add `geography` column via new migration |
-| Social platform list | CHECK constraint in SQL | Adding a new platform needs a migration to update the CHECK — intentional, keeps data controlled |
-| No refresh token table | Not built yet | Needed in Task 3 — decide between DB table or Redis |
+| Decision                         | Current State                        | When to revisit                                                                                  |
+| -------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| One profile per user             | `UNIQUE INDEX` on `profiles.user_id` | If multi-profile support is needed, drop the unique index                                        |
+| `day_of_week` 0-6 (Sunday-based) | JS `Date.getDay()` convention        | Documented — frontend should match                                                               |
+| PostGIS geo search               | Plain `NUMERIC` lat/lng for now      | When "find providers within X km" is built — add `geography` column via new migration            |
+| Social platform list             | CHECK constraint in SQL              | Adding a new platform needs a migration to update the CHECK — intentional, keeps data controlled |
+| No refresh token table           | Not built yet                        | Needed in Task 3 — decide between DB table or Redis                                              |
 
 ---
 
-*Built by Nathy — August 20, 2026*
-*PostgreSQL 16 · Node.js 24 · Express 4 · node-postgres 8 · Pino 10 · Zod 4 · ESLint 9*
+_Built by Nathy — August 20, 2026_
+_PostgreSQL 16 · Node.js 24 · Express 4 · node-postgres 8 · Pino 10 · Zod 4 · ESLint 9_

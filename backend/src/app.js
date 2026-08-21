@@ -13,7 +13,9 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import pinoHttp from 'pino-http'
+import pinoHttp from 'pino-http';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 
 import { config } from './config/index.js'
 import logger from './utils/logger.js'
@@ -87,7 +89,7 @@ app.use('/api/locations', locationsRouter)
 app.use('/api/analytics', analyticsRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/notifications', notificationsRouter)
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // ── 404 handler (after all routes) ───────────────────────────────────────────
 app.use(notFound)
 
