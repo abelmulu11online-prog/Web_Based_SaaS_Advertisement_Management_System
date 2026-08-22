@@ -68,7 +68,7 @@ app.use(
     logger,
     // Don't log the health endpoint on every poll — keeps logs clean
     autoLogging: {
-      ignore: (req) => req.url === '/api/v1/health',
+      ignore: (req) => req.url === '/api/health',
     },
     // Redact sensitive headers from log output
     redact: ['req.headers.authorization', 'req.headers.cookie'],
@@ -80,15 +80,19 @@ app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use('/api/v1/health', healthRouter)
-app.use('/api/v1/auth', authRouter)
-app.use('/api/v1/profile', profileRouter)
-app.use('/api/v1/ads', adsRouter)
-app.use('/api/v1/subscriptions', subscriptionsRouter)
-app.use('/api/v1/locations', locationsRouter)
-app.use('/api/v1/analytics', analyticsRouter)
-app.use('/api/v1/admin', adminRouter)
-app.use('/api/v1/notifications', notificationsRouter)
+app.use('/api/health', healthRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/profile', profileRouter)
+app.use('/api/ads', adsRouter)
+app.use('/api/subscriptions', subscriptionsRouter)
+app.use('/api/locations', locationsRouter)
+app.use('/api/analytics', analyticsRouter)
+app.use('/api/admin', adminRouter)
+app.use('/api/notifications', notificationsRouter)
+app.get('/api-docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // ── 404 handler (after all routes) ───────────────────────────────────────────
 app.use(notFound)

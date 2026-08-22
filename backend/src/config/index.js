@@ -101,7 +101,19 @@ export const config = {
     expiresIn: env('EMAIL_VERIFICATION_EXPIRES_IN', '24h'),
   },
 
-  /** Frontend URL for verification links */
+  /** Password reset settings */
+  passwordReset: {
+    /** Token expiration time (e.g., '1h', '30m') - shorter than email verification for security */
+    expiresIn: env('PASSWORD_RESET_EXPIRES_IN', '1h'),
+  },
+
+  /** Refresh token settings */
+  refreshToken: {
+    /** Token expiration time (e.g., '7d', '30d') - longer than access tokens for persistent sessions */
+    expiresIn: env('REFRESH_TOKEN_EXPIRES_IN', '7d'),
+  },
+
+  /** Frontend URL for verification and reset links */
   frontendUrl: env('FRONTEND_URL', 'http://localhost:5173'),
 
   /** SMTP configuration for email delivery */

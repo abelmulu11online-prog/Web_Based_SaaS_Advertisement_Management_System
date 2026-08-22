@@ -5,6 +5,7 @@
 import { asyncHandler, sendSuccess } from '../../utils/index.js'
 import * as authService from './auth.service.js'
 import * as verificationService from './verification.service.js'
+import * as passwordResetService from './passwordReset.service.js'
 
 /**
  * @swagger
@@ -196,42 +197,117 @@ export const login = asyncHandler(async (req, res) => {
 })
 
 /**
- * Logout a user.
- * POST /api/auth/logout
- * 
- * NOTE: This endpoint is intentionally not implemented in Phase 4.3.
- * The current architecture uses stateless JWT access tokens without
- * server-side session storage. Secure logout requires refresh-token
- * infrastructure (Phase 4.4+) for token revocation.
- * 
- * Returning 501 Not Implemented to avoid security theater.
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     description: "Revoke a refresh token to prevent future token refresh. Note: This does not immediately invalidate existing stateless access JWTs - they remain valid until their normal expiration."
+ *     tags:
+ *       - Authentication
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token to revoke
+ *                 example: "a1b2c3d4e5f6..."
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  */
 export const logout = asyncHandler(async (req, res) => {
-  // Intentionally not implemented - requires refresh-token infrastructure
-  res.status(501).json({
-    success: false,
-    message: 'Logout not yet implemented - requires refresh-token infrastructure',
-    error: { code: 'NOT_IMPLEMENTED' },
-  })
+  const { refreshToken: rawRefreshToken } = req.body
+
+  await authService.logout(rawRefreshToken)
+
+  sendSuccess(res, 'Logout successful')
 })
 
 /**
- * Refresh an access token.
- * POST /api/auth/refresh-token
- * 
- * NOTE: This endpoint is intentionally not implemented in Phase 4.3.
- * Refresh-token storage, rotation, and revocation infrastructure
- * has not been implemented yet (deferred to Phase 4.4+).
- * 
- * Returning 501 Not Implemented to avoid accepting arbitrary tokens.
+ * @swagger
+ * /api/auth/refresh-token:
+ *   post:
+ *     summary: Refresh access token
+ *     description: Use a refresh token to obtain a new access token. Implements token rotation - the old refresh token is revoked and a new one is issued.
+ *     tags:
+ *       - Authentication
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token
+ *                 example: "a1b2c3d4e5f6..."
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         accessToken:
+ *                           type: string
+ *                           description: New JWT access token
+ *                           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                         refreshToken:
+ *                           type: string
+ *                           description: New refresh token (old one is revoked)
+ *                           example: "f6e5d4c3b2a1..."
+ *       401:
+ *         description: Invalid, expired, or revoked refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Account suspended, deleted, or inactive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  */
 export const refreshToken = asyncHandler(async (req, res) => {
-  // Intentionally not implemented - requires refresh-token infrastructure
-  res.status(501).json({
-    success: false,
-    message: 'Refresh token not yet implemented - requires refresh-token infrastructure',
-    error: { code: 'NOT_IMPLEMENTED' },
-  })
+  const { refreshToken: rawRefreshToken } = req.body
+
+  const result = await authService.refreshToken(rawRefreshToken)
+
+  sendSuccess(res, 'Token refreshed successfully', result)
 })
 
 /**
@@ -349,4 +425,126 @@ export const resendVerification = asyncHandler(async (req, res) => {
   
   // Always return success message for security (enumeration protection)
   sendSuccess(res, 'If the email exists and requires verification, a verification email has been sent')
+})
+
+/**
+ * Request a password reset email.
+ * POST /api/auth/forgot-password
+ * 
+ * Public endpoint - no authentication required.
+ * For security, returns the same response whether the email exists or not.
+ * 
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     description: Send a password reset email to the specified address. For security, returns the same response whether the email exists or not.
+ *     tags:
+ *       - Authentication
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: Password reset email sent (or would be sent if email exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  
+  await passwordResetService.createAndSendPasswordResetToken(email)
+  
+  // Always return success message for security (enumeration protection)
+  sendSuccess(res, 'If an account exists with this email, a password reset email has been sent')
+})
+
+/**
+ * Reset password using a reset token.
+ * POST /api/auth/reset-password
+ * 
+ * Public endpoint - no authentication required.
+ * The reset token itself serves as the credential.
+ * 
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset password
+ *     description: Reset a user's password using a valid password reset token
+ *     tags:
+ *       - Authentication
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - password
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Password reset token from email
+ *                 example: "a1b2c3d4e5f6..."
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *                 description: New password (min 8 chars, mixed case, digit, special char)
+ *                 example: "NewSecurePass123!"
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Invalid, expired, or already used token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Account deleted or not eligible for password reset
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body
+  
+  await passwordResetService.resetPassword(token, password)
+  
+  sendSuccess(res, 'Password reset successfully')
 })

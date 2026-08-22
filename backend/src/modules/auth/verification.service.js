@@ -9,6 +9,7 @@ import { generateToken, hashToken, calculateExpiration, isTokenExpired, isTokenU
 import { sendVerificationEmail } from '../../services/email.service.js'
 import { config } from '../../config/index.js'
 import logger from '../../utils/logger.js'
+import pool from '../../db/index.js'
 import * as authRepository from './auth.repository.js'
 import * as verificationRepository from './verification.repository.js'
 
@@ -18,7 +19,7 @@ import * as verificationRepository from './verification.repository.js'
  * @param {string} email - User's email address
  * @returns {Promise<boolean>} True if email sent successfully
  */
-export async function createAndSendVerificationToken(userId, email) {
+export async function createAndSendVerificationToken(userId, email, dbClient = pool) {
   // Generate secure token
   const rawToken = generateToken()
   const tokenHash = hashToken(rawToken)
@@ -29,7 +30,7 @@ export async function createAndSendVerificationToken(userId, email) {
     userId,
     tokenHash,
     expiresAt,
-  })
+  }, dbClient)
   
   // Generate verification URL
   const verificationUrl = `${config.frontendUrl}/verify-email?token=${rawToken}`

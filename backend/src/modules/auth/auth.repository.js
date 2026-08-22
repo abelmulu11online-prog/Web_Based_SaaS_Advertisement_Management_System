@@ -9,8 +9,8 @@ import pool from '../../db/index.js'
  * @param {string} email
  * @returns {Promise<object|null>} User object or null if not found
  */
-export async function findByEmail(email) {
-  const result = await pool.query(
+export async function findByEmail(email, dbClient = pool) {
+  const result = await dbClient.query(
     'SELECT id, email, phone, password_hash, role, status, created_at, updated_at FROM users WHERE email = $1',
     [email],
   )
@@ -22,8 +22,8 @@ export async function findByEmail(email) {
  * @param {string} phone
  * @returns {Promise<object|null>} User object or null if not found
  */
-export async function findByPhone(phone) {
-  const result = await pool.query(
+export async function findByPhone(phone, dbClient = pool) {
+  const result = await dbClient.query(
     'SELECT id, email, phone, password_hash, role, status, created_at, updated_at FROM users WHERE phone = $1',
     [phone],
   )
@@ -35,8 +35,8 @@ export async function findByPhone(phone) {
  * @param {string} id
  * @returns {Promise<object|null>} User object or null if not found
  */
-export async function findById(id) {
-  const result = await pool.query(
+export async function findById(id, dbClient = pool) {
+  const result = await dbClient.query(
     'SELECT id, email, phone, password_hash, role, status, created_at, updated_at FROM users WHERE id = $1',
     [id],
   )
@@ -48,9 +48,23 @@ export async function findById(id) {
  * @param {string} identifier - email or phone
  * @returns {Promise<object|null>} User object or null if not found
  */
-export async function findByIdentifier(identifier) {
-  const result = await pool.query(
+export async function findByIdentifier(identifier, dbClient = pool) {
+  const result = await dbClient.query(
     'SELECT id, email, phone, password_hash, role, status, created_at, updated_at FROM users WHERE email = $1 OR phone = $1',
+    [identifier],
+  )
+  return result.rows[0] || null
+}
+
+/**
+ * Find a user by either email or phone with row lock (for login within transactions).
+ * The FOR UPDATE clause locks the row to prevent concurrent modifications.
+ * @param {string} identifier - email or phone
+ * @returns {Promise<object|null>} User object or null if not found
+ */
+export async function findByIdentifierForUpdate(identifier, dbClient = pool) {
+  const result = await dbClient.query(
+    'SELECT id, email, phone, password_hash, role, status, created_at, updated_at FROM users WHERE email = $1 OR phone = $1 FOR UPDATE',
     [identifier],
   )
   return result.rows[0] || null
@@ -65,8 +79,8 @@ export async function findByIdentifier(identifier) {
  * @param {string} userData.role
  * @returns {Promise<object>} Created user object (without password_hash)
  */
-export async function create({ email, phone, passwordHash, role }) {
-  const result = await pool.query(
+export async function create({ email, phone, passwordHash, role }, dbClient = pool) {
+  const result = await dbClient.query(
     `INSERT INTO users (email, phone, password_hash, role, status)
      VALUES ($1, $2, $3, $4, 'ACTIVE')
      RETURNING id, email, phone, role, status, created_at, updated_at`,
@@ -81,8 +95,8 @@ export async function create({ email, phone, passwordHash, role }) {
  * @param {string} status - ACTIVE, SUSPENDED, or DELETED
  * @returns {Promise<object>} Updated user object
  */
-export async function updateStatus(id, status) {
-  const result = await pool.query(
+export async function updateStatus(id, status, dbClient = pool) {
+  const result = await dbClient.query(
     `UPDATE users
      SET status = $2, updated_at = now()
      WHERE id = $1
@@ -98,8 +112,8 @@ export async function updateStatus(id, status) {
  * @param {string} passwordHash
  * @returns {Promise<object>} Updated user object
  */
-export async function updatePassword(id, passwordHash) {
-  const result = await pool.query(
+export async function updatePassword(id, passwordHash, dbClient = pool) {
+  const result = await dbClient.query(
     `UPDATE users
      SET password_hash = $2, updated_at = now()
      WHERE id = $1
@@ -114,8 +128,8 @@ export async function updatePassword(id, passwordHash) {
  * @param {string} id
  * @returns {Promise<object>} Updated user object
  */
-export async function markEmailVerified(id) {
-  const result = await pool.query(
+export async function markEmailVerified(id, dbClient = pool) {
+  const result = await dbClient.query(
     `UPDATE users
      SET email_verified_at = now(), updated_at = now()
      WHERE id = $1
@@ -130,8 +144,8 @@ export async function markEmailVerified(id) {
  * @param {string} email
  * @returns {Promise<object|null>} User object or null if not found
  */
-export async function findByEmailWithVerification(email) {
-  const result = await pool.query(
+export async function findByEmailWithVerification(email, dbClient = pool) {
+  const result = await dbClient.query(
     'SELECT id, email, phone, password_hash, role, status, email_verified_at, created_at, updated_at FROM users WHERE email = $1',
     [email],
   )

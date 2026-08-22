@@ -47,6 +47,8 @@ async function cleanupTestUsers() {
   //   Registration     → test-register-*, testregister@*, test-duplicate*, etc.
   //   Login Service    → test-login@example.com, +12345678913
   //   Security         → test-security*@example.com
+  await q('DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE $1)', ['test%@example.com'])
+  await q('DELETE FROM email_verification_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE $1)', ['test%@example.com'])
   await q('DELETE FROM users WHERE email LIKE $1', ['test%@example.com'])
   await q('DELETE FROM users WHERE phone LIKE $1', ['+123456789%'])
 }

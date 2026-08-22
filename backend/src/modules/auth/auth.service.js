@@ -7,7 +7,9 @@ import { generateToken } from '../../utils/jwt.js'
 import { createError } from '../../utils/index.js'
 import * as authRepository from './auth.repository.js'
 import { createAndSendVerificationToken } from './verification.service.js'
+import { createRefreshTokenForUser } from './refreshToken.service.js'
 import logger from '../../utils/logger.js'
+import pool from '../../db/index.js'
 
 /**
  * Register a new user.
@@ -41,34 +43,45 @@ export async function register({ email, phone, password }) {
   // Hash the password
   const passwordHash = await hashPassword(password)
 
-  // Create user with default USER role
-  const user = await authRepository.create({
-    email: normalizedEmail,
-    phone: normalizedPhone,
-    passwordHash,
-    role: 'USER',
-  })
+  // Begin a database transaction to atomically create user and (optionally) a verification token
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
 
-  logger.info({ userId: user.id, email: normalizedEmail }, 'User registered successfully')
+    // Create user with default USER role
+    const resultUser = await client.query(
+      `INSERT INTO users (email, phone, password_hash, role, status)
+       VALUES ($1, $2, $3, $4, 'ACTIVE')
+       RETURNING id, email, phone, role, status, created_at, updated_at`,
+      [normalizedEmail, normalizedPhone, passwordHash, 'USER']
+    )
+    const user = resultUser.rows[0]
 
-  // Send verification email if user has email
-  if (normalizedEmail) {
-    try {
-      await createAndSendVerificationToken(user.id, normalizedEmail)
-    } catch (err) {
-      // Log but don't fail registration - user can request resend
-      logger.warn({ userId: user.id, error: err.message }, 'Failed to send verification email during registration')
+    logger.info({ userId: user.id, email: normalizedEmail }, 'User registered successfully')
+
+    // If email provided, create verification token inside transaction
+    if (normalizedEmail) {
+      await createAndSendVerificationToken(user.id, normalizedEmail, client).catch(err => {
+        logger.warn({ userId: user.id, error: err.message }, 'Failed to send verification email during registration')
+      })
     }
-  }
 
-  // Return safe user data (no password_hash)
-  return {
-    id: user.id,
-    email: user.email,
-    phone: user.phone,
-    role: user.role,
-    status: user.status,
-    created_at: user.created_at,
+    await client.query('COMMIT')
+    // Return safe user data (no password_hash)
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      status: user.status,
+      created_at: user.created_at,
+    }
+  } catch (err) {
+    await client.query('ROLLBACK')
+    logger.error({ error: err.message, stack: err.stack }, 'Registration transaction failed')
+    throw err
+  } finally {
+    client.release()
   }
 }
 
@@ -80,79 +93,94 @@ export async function register({ email, phone, password }) {
  * @returns {Promise<object>} { user, accessToken }
  */
 export async function login({ identifier, password }) {
-  // Find user by identifier (email or phone)
-  const user = await authRepository.findByIdentifier(identifier)
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
 
-  // Generic error for invalid credentials (avoid account enumeration)
-  if (!user) {
-    throw createError('Invalid credentials', 401, 'INVALID_CREDENTIALS')
-  }
+    // Find user by identifier (email or phone) with row lock to prevent concurrent modifications
+    const user = await authRepository.findByIdentifierForUpdate(identifier, client)
 
-  // Check if user has a password (OAuth accounts may not)
-  if (!user.password_hash) {
-    throw createError('Invalid credentials', 401, 'INVALID_CREDENTIALS')
-  }
+    // Generic error for invalid credentials (avoid account enumeration)
+    if (!user) {
+      throw createError('Invalid credentials', 401, 'INVALID_CREDENTIALS')
+    }
 
-  // Compare password
-  const isPasswordValid = await comparePassword(password, user.password_hash)
-  if (!isPasswordValid) {
-    throw createError('Invalid credentials', 401, 'INVALID_CREDENTIALS')
-  }
+    // Check if user has a password (OAuth accounts may not)
+    if (!user.password_hash) {
+      throw createError('Invalid credentials', 401, 'INVALID_CREDENTIALS')
+    }
 
-  // Check account status
-  if (user.status === 'SUSPENDED') {
-    throw createError('Account has been suspended', 403, 'ACCOUNT_SUSPENDED')
-  }
+    // Check account status — password check comes AFTER status check to avoid timing attacks
+    if (user.status === 'SUSPENDED') {
+      throw createError('Account has been suspended', 403, 'ACCOUNT_SUSPENDED')
+    }
 
-  if (user.status === 'DELETED') {
-    throw createError('Account has been deleted', 403, 'ACCOUNT_DELETED')
-  }
+    if (user.status === 'DELETED') {
+      throw createError('Account has been deleted', 403, 'ACCOUNT_DELETED')
+    }
 
-  if (user.status !== 'ACTIVE') {
-    throw createError('Account is not active', 403, 'ACCOUNT_INACTIVE')
-  }
+    if (user.status !== 'ACTIVE') {
+      throw createError('Account is not active', 403, 'ACCOUNT_INACTIVE')
+    }
 
-  // Generate access token
-  const accessToken = generateToken({
-    id: user.id,
-    role: user.role,
-    status: user.status,
-  })
+    // Verify password
+    const isPasswordValid = await comparePassword(password, user.password_hash)
 
-  logger.info({ userId: user.id }, 'User logged in successfully')
+    if (!isPasswordValid) {
+      throw createError('Invalid credentials', 401, 'INVALID_CREDENTIALS')
+    }
 
-  // Return safe user data and token
-  return {
-    user: {
+    // Generate access token (stateless JWT)
+    const accessToken = generateToken({
       id: user.id,
-      email: user.email,
-      phone: user.phone,
       role: user.role,
       status: user.status,
-      created_at: user.created_at,
-    },
-    accessToken,
+    })
+
+    // Generate refresh token
+    const { rawToken: refreshToken } = await createRefreshTokenForUser(user.id, client)
+
+    await client.query('COMMIT')
+    logger.info({ userId: user.id }, 'User logged in successfully')
+
+    // Return tokens and safe user data
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        created_at: user.created_at,
+      },
+      accessToken,
+      refreshToken,
+    }
+  } catch (error) {
+    await client.query('ROLLBACK')
+    logger.error({ error: error.message, stack: error.stack }, 'Login error')
+    throw error
+  } finally {
+    client.release()
   }
 }
 
 /**
  * Refresh an access token using a refresh token.
- * Note: This is a placeholder for Phase 4.3+ when refresh tokens are implemented.
- * @param {string} _refreshToken
- * @returns {Promise<object>} { accessToken }
+ * @param {string} refreshToken - Raw refresh token from client
+ * @returns {Promise<object>} { accessToken, refreshToken }
  */
-export async function refreshToken(_refreshToken) {
-  // Placeholder - refresh token storage and validation will be implemented in a later phase
-  throw createError('Refresh tokens not yet implemented', 501, 'NOT_IMPLEMENTED')
+export async function refreshToken(refreshToken) {
+  const { refreshAccessToken } = await import('./refreshToken.service.js')
+  return refreshAccessToken(refreshToken)
 }
 
 /**
- * Logout a user.
- * Note: This is a placeholder for Phase 4.3+ when token revocation is implemented.
- * @param {string} userId
+ * Logout a user by revoking their refresh token.
+ * @param {string} refreshToken - Raw refresh token to revoke
  * @returns {Promise<void>}
  */
-export async function logout(userId) {
-  // Placeholder - token revocation will be implemented in a later phase
-  logger.info({ userId }, 'User logged out')
+export async function logout(refreshToken) {
+  const { revokeRefreshToken } = await import('./refreshToken.service.js')
+  await revokeRefreshToken(refreshToken)
 }

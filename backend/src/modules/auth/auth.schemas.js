@@ -24,7 +24,7 @@ const emailSchema = z
  */
 const phoneSchema = z
   .string()
-  .regex(/^\+?[1-9][\d\s]{6,14}$/, 'Invalid phone format. Use international format (e.g., +1234567890)')
+  .regex(/^\+?[1-9][\d\s]{6,14}$/, 'Invalid phone format. Use international format (e.g., +251912455678)')
   .transform((val) => val.replace(/\s/g, ''))
   .optional()
 
@@ -126,4 +126,45 @@ export const refreshTokenSchema = z.object({
   body: z.object({
     refreshToken: z.string().min(1, 'Refresh token is required'),
   }),
+})
+
+/**
+ * Logout schema.
+ *
+ * Requires:
+ * - refreshToken
+ */
+export const logoutSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, 'Refresh token is required'),
+  }),
+})
+
+// ── Password reset schemas ────────────────────────────────────────────────────
+
+/**
+ * Forgot password schema.
+ * Accepts email address.
+ */
+export const forgotPasswordSchema = z.object({
+  body: z
+    .object({
+      email: emailSchema,
+      ...rejectedFields,
+    })
+    .strict(),
+})
+
+/**
+ * Reset password schema.
+ * Accepts reset token and new password.
+ */
+export const resetPasswordSchema = z.object({
+  body: z
+    .object({
+      token: z.string().min(1, 'Reset token is required'),
+      password: passwordSchema,
+      ...rejectedFields,
+    })
+    .strict(),
 })

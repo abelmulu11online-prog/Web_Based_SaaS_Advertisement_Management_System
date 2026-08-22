@@ -78,6 +78,8 @@ async function q(sql, params = []) {
 }
 
 async function cleanupTestUsers() {
+  await q('DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE $1)', ['test-api-auth-%'])
+  await q('DELETE FROM email_verification_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE $1)', ['test-api-auth-%'])
   await q('DELETE FROM users WHERE email LIKE $1', ['test-api-auth-%'])
   await q('DELETE FROM users WHERE phone LIKE $1', ['+1987654%'])
   await q('DELETE FROM users WHERE phone = $1', ['01234567890'])
@@ -98,6 +100,24 @@ before(async () => {
 
   // Ensure database is ready
   await q('SELECT 1')
+
+  // Ensure refresh_tokens table exists for login tests
+  await q(`
+    CREATE TABLE IF NOT EXISTS refresh_tokens (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL,
+      token_hash TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      revoked_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CONSTRAINT refresh_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `)
+
+  // Create indexes
+  await q('CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token_hash ON refresh_tokens (token_hash)')
+  await q('CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens (user_id)')
 })
 
 after(async () => {
@@ -293,22 +313,27 @@ describe('POST /api/auth/login', () => {
   })
 
   it('authenticates with valid email and returns 200', async () => {
-    const response = await request('POST', '/api/auth/login', {
-      body: {
-        identifier: 'test-api-login@example.com',
-        password: 'ValidPassword123!',
-      },
-    })
+    try {
+      const response = await request('POST', '/api/auth/login', {
+        body: {
+          identifier: 'test-api-login@example.com',
+          password: 'ValidPassword123!',
+        },
+      })
 
-    assert.strictEqual(response.statusCode, 200, 'Should return 200 OK')
-    assert.strictEqual(response.body.success, true, 'Should return success: true')
-    assert.strictEqual(response.body.message, 'Login successful', 'Should have correct message')
-    assert.ok(response.body.data, 'Should have data')
-    assert.ok(response.body.data.user, 'Should have user object')
-    assert.ok(response.body.data.accessToken, 'Should have access token')
-    assert.strictEqual(response.body.data.user.email, 'test-api-login@example.com', 'Email should match')
-    assert.ok(!response.body.data.user.password, 'Should not return password')
-    assert.ok(!response.body.data.user.password_hash, 'Should not return password_hash')
+      assert.strictEqual(response.statusCode, 200, 'Should return 200 OK')
+      assert.strictEqual(response.body.success, true, 'Should return success: true')
+      assert.strictEqual(response.body.message, 'Login successful', 'Should have correct message')
+      assert.ok(response.body.data, 'Should have data')
+      assert.ok(response.body.data.user, 'Should have user object')
+      assert.ok(response.body.data.accessToken, 'Should have access token')
+      assert.strictEqual(response.body.data.user.email, 'test-api-login@example.com', 'Email should match')
+      assert.ok(!response.body.data.user.password, 'Should not return password')
+      assert.ok(!response.body.data.user.password_hash, 'Should not return password_hash')
+    } catch (err) {
+      console.error('FULL ERROR STACK TRACE:', err)
+      throw err
+    }
   })
 
   it('authenticates with valid phone and returns 200', async () => {
@@ -419,30 +444,55 @@ describe('POST /api/auth/login', () => {
   })
 })
 
-// ── Logout API Tests (Not Implemented) ───────────────────────────────────────
+// ── Logout API Tests ─────────────────────────────────────────────────────────
 
 describe('POST /api/auth/logout', () => {
-  it('returns 501 Not Implemented', async () => {
-    const response = await request('POST', '/api/auth/logout')
+  it('rejects logout without refreshToken', async () => {
+    const response = await request('POST', '/api/auth/logout', {
+      body: {},
+    })
 
-    assert.strictEqual(response.statusCode, 501, 'Should return 501 Not Implemented')
+    assert.strictEqual(response.statusCode, 422, 'Should return 422 for missing refreshToken')
     assert.strictEqual(response.body.success, false, 'Should return success: false')
-    assert.strictEqual(response.body.error.code, 'NOT_IMPLEMENTED', 'Should have NOT_IMPLEMENTED code')
+  })
+
+  it('accepts logout with valid refreshToken', async () => {
+    // Register and login to get a refresh token
+    await request('POST', '/api/auth/register', {
+      body: { email: 'logout-test@example.com', password: 'TestPass123!' },
+    })
+
+    const loginRes = await request('POST', '/api/auth/login', {
+      body: { identifier: 'logout-test@example.com', password: 'TestPass123!' },
+    })
+
+    const response = await request('POST', '/api/auth/logout', {
+      body: { refreshToken: loginRes.body.data.refreshToken },
+    })
+
+    assert.strictEqual(response.statusCode, 200, 'Should return 200 for successful logout')
+    assert.strictEqual(response.body.success, true, 'Should return success: true')
   })
 })
 
-// ── Refresh Token API Tests (Not Implemented) ───────────────────────────────
+// ── Refresh Token API Tests ───────────────────────────────────────────────────
 
 describe('POST /api/auth/refresh-token', () => {
-  it('returns 501 Not Implemented', async () => {
+  it('rejects refresh without refreshToken', async () => {
     const response = await request('POST', '/api/auth/refresh-token', {
-      body: {
-        refreshToken: 'some-token',
-      },
+      body: {},
     })
 
-    assert.strictEqual(response.statusCode, 501, 'Should return 501 Not Implemented')
+    assert.strictEqual(response.statusCode, 422, 'Should return 422 for missing refreshToken')
     assert.strictEqual(response.body.success, false, 'Should return success: false')
-    assert.strictEqual(response.body.error.code, 'NOT_IMPLEMENTED', 'Should have NOT_IMPLEMENTED code')
+  })
+
+  it('rejects refresh with invalid refreshToken', async () => {
+    const response = await request('POST', '/api/auth/refresh-token', {
+      body: { refreshToken: 'invalid-token' },
+    })
+
+    assert.strictEqual(response.statusCode, 401, 'Should return 401 for invalid token')
+    assert.strictEqual(response.body.success, false, 'Should return success: false')
   })
 })

@@ -75,6 +75,7 @@ async function q(sql, params = []) {
 }
 
 async function cleanupTestUsers() {
+  await q('DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE $1)', ['test-verify-%'])
   await q('DELETE FROM email_verification_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE $1)', ['test-verify-%'])
   await q('DELETE FROM users WHERE email LIKE $1', ['test-verify-%'])
   await q('DELETE FROM users WHERE phone = $1', ['+19876543299'])
