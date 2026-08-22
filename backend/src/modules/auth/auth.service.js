@@ -6,6 +6,7 @@ import { hashPassword, comparePassword } from '../../utils/password.js'
 import { generateToken } from '../../utils/jwt.js'
 import { createError } from '../../utils/index.js'
 import * as authRepository from './auth.repository.js'
+import { createAndSendVerificationToken } from './verification.service.js'
 import logger from '../../utils/logger.js'
 
 /**
@@ -49,6 +50,16 @@ export async function register({ email, phone, password }) {
   })
 
   logger.info({ userId: user.id, email: normalizedEmail }, 'User registered successfully')
+
+  // Send verification email if user has email
+  if (normalizedEmail) {
+    try {
+      await createAndSendVerificationToken(user.id, normalizedEmail)
+    } catch (err) {
+      // Log but don't fail registration - user can request resend
+      logger.warn({ userId: user.id, error: err.message }, 'Failed to send verification email during registration')
+    }
+  }
 
   // Return safe user data (no password_hash)
   return {

@@ -4,6 +4,7 @@
  */
 import { asyncHandler, sendSuccess } from '../../utils/index.js'
 import * as authService from './auth.service.js'
+import * as verificationService from './verification.service.js'
 
 /**
  * @swagger
@@ -231,4 +232,121 @@ export const refreshToken = asyncHandler(async (req, res) => {
     message: 'Refresh token not yet implemented - requires refresh-token infrastructure',
     error: { code: 'NOT_IMPLEMENTED' },
   })
+})
+
+/**
+ * Verify email using a verification token.
+ * GET /api/auth/verify-email?token=<token>
+ * 
+ * Public endpoint - no authentication required.
+ * The verification token itself serves as the credential.
+ * 
+ * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Verify email address
+ *     description: Verify a user's email address using a verification token sent via email
+ *     tags:
+ *       - Authentication
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email verification token
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         userId:
+ *                           type: string
+ *                           format: uuid
+ *                         email:
+ *                           type: string
+ *                           format: email
+ *                         emailVerifiedAt:
+ *                           type: string
+ *                           format: date-time
+ *       400:
+ *         description: Invalid, expired, or already used token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ */
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.query
+  
+  const result = await verificationService.verifyEmail(token)
+  
+  sendSuccess(res, 'Email verified successfully', result)
+})
+
+/**
+ * Resend verification email.
+ * POST /api/auth/resend-verification
+ * 
+ * Public endpoint - no authentication required.
+ * For security, returns the same response whether the email exists or not.
+ * 
+ * @swagger
+ * /api/auth/resend-verification:
+ *   post:
+ *     summary: Resend verification email
+ *     description: Send a new verification email to the specified address. For security, returns the same response whether the email exists or not.
+ *     tags:
+ *       - Authentication
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: Verification email sent (or would be sent if email exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *       422:
+ *         description: Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
+ */
+export const resendVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  
+  await verificationService.resendVerificationEmail(email)
+  
+  // Always return success message for security (enumeration protection)
+  sendSuccess(res, 'If the email exists and requires verification, a verification email has been sent')
 })

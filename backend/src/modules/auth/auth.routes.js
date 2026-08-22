@@ -7,7 +7,7 @@
  */
 import { Router } from 'express'
 import { validate } from '../../middleware/validate.js'
-import { registerSchema, loginSchema, refreshTokenSchema } from './auth.schemas.js'
+import { registerSchema, loginSchema, refreshTokenSchema, verifyEmailSchema, resendVerificationSchema } from './auth.schemas.js'
 import * as authController from './auth.controller.js'
 
 const router = Router()
@@ -39,5 +39,19 @@ router.post('/logout', authController.logout)
  *       Requires refresh-token infrastructure
  */
 router.post('/refresh-token', validate(refreshTokenSchema), authController.refreshToken)
+
+/**
+ * GET /api/auth/verify-email
+ * Public endpoint - no authentication required
+ * Uses verification token as credential
+ */
+router.get('/verify-email', validate(verifyEmailSchema), authController.verifyEmail)
+
+/**
+ * POST /api/auth/resend-verification
+ * Public endpoint - no authentication required
+ * For security, returns same response whether email exists or not
+ */
+router.post('/resend-verification', validate(resendVerificationSchema), authController.resendVerification)
 
 export default router

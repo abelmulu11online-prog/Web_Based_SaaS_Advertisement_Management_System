@@ -1,86 +1,119 @@
 /**
  * auth.schemas.js — Zod validation schemas for authentication.
  *
- * Defines schemas for registration and login validation.
- * Used by the validate middleware in Phase 4.3.
+ * Defines schemas for registration, login, and token operations.
+ * Used by the validate middleware (Phase 4.2).
+ *
+ * Security: explicitly rejects client-controlled authentication fields
+ * (role, status, password_hash, is_verified, user_id, id, timestamps).
  */
 import { z } from 'zod'
 
+// ── Reusable field schemas ────────────────────────────────────────────────────
+
 /**
- * Email validation — normalizes to lowercase and validates format.
+ * Email validation with normalization.
  */
 const emailSchema = z
   .string()
-  .min(1, 'Email is required')
   .email('Invalid email format')
   .transform((val) => val.toLowerCase().trim())
 
 /**
- * Phone validation — expects international format (E.164).
- * Example: +1234567890 or +44 20 7123 4567
- * Spaces are allowed and will be removed automatically.
+ * Phone validation (E.164 format, optional).
  */
 const phoneSchema = z
   .string()
-  .min(1, 'Phone is required')
-  .regex(/^\+?[1-9][\d\s]{1,14}$/, 'Invalid phone format. Use international format (e.g., +1234567890)')
-  .transform((val) => val.replace(/\s/g, '')) // Remove spaces
+  .regex(/^\+?[1-9][\d\s]{6,14}$/, 'Invalid phone format. Use international format (e.g., +1234567890)')
+  .transform((val) => val.replace(/\s/g, ''))
+  .optional()
 
 /**
- * Password validation — enforces reasonable password policy.
+ * Password validation (min 8 chars, mixed case, digit, special char).
  */
 const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password must not exceed 128 characters')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[0-9]/, 'Password must contain at least one digit')
   .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character')
 
 /**
+ * Fields that must NEVER be accepted from the client.
+ * These belong to account/security management or are server-generated.
+ */
+const rejectedFields = {
+  id: z.never().optional(),
+  user_id: z.never().optional(),
+  role: z.never().optional(),
+  status: z.never().optional(),
+  password_hash: z.never().optional(),
+  is_verified: z.never().optional(),
+  created_at: z.never().optional(),
+  updated_at: z.never().optional(),
+}
+
+// ── Authentication schemas ─────────────────────────────────────────────────────
+
+/**
  * Registration schema.
- *
- * Requires:
- * - email OR phone (at least one)
- * - password
- *
- * Rejects:
- * - role field (server-controlled)
- * - status field (server-controlled)
- * - password_hash (never allowed from client)
+ * Requires either email or phone (or both), plus password.
  */
 export const registerSchema = z.object({
   body: z
     .object({
       email: emailSchema.optional(),
-      phone: phoneSchema.optional(),
+      phone: phoneSchema,
       password: passwordSchema,
-      // Explicitly reject client-controlled fields
-      role: z.never().optional(),
-      status: z.never().optional(),
-      password_hash: z.never().optional(),
+      ...rejectedFields,
     })
+    .strict()
     .refine((data) => data.email || data.phone, {
       message: 'At least one of email or phone is required',
-      path: ['email'],
+      path: [],
     }),
 })
 
 /**
  * Login schema.
- *
- * Accepts:
- * - email OR phone (identifier)
- * - password
- *
- * Uses a single "identifier" field to avoid account enumeration.
+ * Accepts either email or phone as identifier.
  */
 export const loginSchema = z.object({
-  body: z.object({
-    identifier: z.string().min(1, 'Identifier (email or phone) is required'),
-    password: z.string().min(1, 'Password is required'),
-  }),
+  body: z
+    .object({
+      identifier: z.string().min(1, 'Identifier is required'),
+      password: z.string().min(1, 'Password is required'),
+      ...rejectedFields,
+    })
+    .strict(),
+})
+
+// ── Email verification schemas ─────────────────────────────────────────────────
+
+/**
+ * Verify email schema.
+ * Accepts verification token from query parameter.
+ */
+export const verifyEmailSchema = z.object({
+  query: z
+    .object({
+      token: z.string().min(1, 'Verification token is required'),
+    })
+    .strict(),
+})
+
+/**
+ * Resend verification email schema.
+ * Accepts email address.
+ */
+export const resendVerificationSchema = z.object({
+  body: z
+    .object({
+      email: emailSchema,
+      ...rejectedFields,
+    })
+    .strict(),
 })
 
 /**

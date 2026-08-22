@@ -108,3 +108,32 @@ export async function updatePassword(id, passwordHash) {
   )
   return result.rows[0]
 }
+
+/**
+ * Mark user's email as verified.
+ * @param {string} id
+ * @returns {Promise<object>} Updated user object
+ */
+export async function markEmailVerified(id) {
+  const result = await pool.query(
+    `UPDATE users
+     SET email_verified_at = now(), updated_at = now()
+     WHERE id = $1
+     RETURNING id, email, phone, role, status, email_verified_at, created_at, updated_at`,
+    [id],
+  )
+  return result.rows[0]
+}
+
+/**
+ * Find a user by email including email verification status.
+ * @param {string} email
+ * @returns {Promise<object|null>} User object or null if not found
+ */
+export async function findByEmailWithVerification(email) {
+  const result = await pool.query(
+    'SELECT id, email, phone, password_hash, role, status, email_verified_at, created_at, updated_at FROM users WHERE email = $1',
+    [email],
+  )
+  return result.rows[0] || null
+}
