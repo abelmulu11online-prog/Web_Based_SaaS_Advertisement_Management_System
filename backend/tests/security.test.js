@@ -16,6 +16,8 @@ import { describe, it, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { hashPassword, comparePassword } from '../src/utils/password.js'
 import { generateToken, verifyToken } from '../src/utils/jwt.js'
+import jwt from 'jsonwebtoken'
+import { config } from '../src/config/index.js'
 import { authenticate } from '../src/middleware/authenticate.js'
 import { requireRole } from '../src/middleware/requireRole.js'
 import http from 'node:http'
@@ -164,30 +166,26 @@ describe('JWT utility', () => {
   })
 
   it('rejects an expired token', async () => {
-    // Temporarily override JWT expiration to 1ms for this test
-    const originalExpiresIn = process.env.JWT_EXPIRES_IN
-    process.env.JWT_EXPIRES_IN = '1ms'
-    
-    // Re-import jwt utility to pick up new config
-    const { generateToken: generateTokenShort, verifyToken: verifyTokenShort } = await import('../src/utils/jwt.js')
-    
+    // Sign directly with jsonwebtoken using a 1ms expiration.
+    // We can't use generateToken() because ESM caches the config module,
+    // so changing process.env.JWT_EXPIRES_IN at runtime has no effect —
+    // the cached config.jwt.expiresIn value is unchanged.
     const payload = { id: '123', role: 'USER', status: 'active' }
-    const token = generateTokenShort(payload)
-    
+    const token = jwt.sign(payload, config.jwt.secret, {
+      expiresIn: '1ms',
+    })
+
     // Wait for token to expire
     await new Promise(resolve => setTimeout(resolve, 10))
-    
+
     // Verify expired token is rejected with TOKEN_EXPIRED code
     assert.throws(
-      () => verifyTokenShort(token),
+      () => verifyToken(token),
       (err) => {
         return err.message === 'Token expired' && err.code === 'TOKEN_EXPIRED' && err.statusCode === 401
       },
       'Should throw error with TOKEN_EXPIRED code for expired token'
     )
-    
-    // Restore original config
-    process.env.JWT_EXPIRES_IN = originalExpiresIn
   })
 })
 
@@ -272,6 +270,33 @@ describe('Authentication middleware', () => {
     assert.ok(req.user, 'req.user should be populated')
     assert.strictEqual(req.user.id, payload.id, 'User id should match')
     assert.strictEqual(req.user.role, payload.role, 'User role should match')
+  })
+
+  it('returns 401 for an expired token (end-to-end via authenticate middleware)', async () => {
+    // Create an expired token directly (bypassing config cache)
+    const payload = { id: '123', role: 'USER', status: 'active' }
+    const token = jwt.sign(payload, config.jwt.secret, { expiresIn: '1ms' })
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    const req = { headers: { authorization: `Bearer ${token}` } }
+    let capturedStatusCode
+    let capturedBody
+    const res = {
+      status: (code) => {
+        capturedStatusCode = code
+        return {
+          json: (data) => {
+            capturedBody = data
+          }
+        }
+      }
+    }
+    const next = () => {}
+
+    authenticate(req, res, next)
+    assert.strictEqual(capturedStatusCode, 401, 'Should return 401')
+    assert.strictEqual(capturedBody.success, false, 'Should indicate failure')
+    assert.strictEqual(capturedBody.error.code, 'TOKEN_EXPIRED', 'Should have TOKEN_EXPIRED error code')
   })
 })
 

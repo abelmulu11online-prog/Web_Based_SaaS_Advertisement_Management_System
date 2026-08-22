@@ -89,7 +89,7 @@ export const config = {
 
   /** CORS — comma-separated list of allowed origins */
   cors: {
-    allowedOrigins: env('CORS_ORIGINS', 'http://localhost:5173')
+    allowedOrigins: env('CORS_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000, http://localhost:3001')
       .split(',')
       .map((o) => o.trim())
       .filter(Boolean),

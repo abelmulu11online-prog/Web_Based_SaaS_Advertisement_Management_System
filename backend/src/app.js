@@ -25,7 +25,7 @@ import { errorHandler } from './middleware/errorHandler.js'
 // ── Module routers ────────────────────────────────────────────────────────────
 import healthRouter from './modules/health/health.routes.js'
 import authRouter from './modules/auth/auth.routes.js'
-import usersRouter from './modules/users/users.routes.js'
+import profileRouter from './modules/users/users.routes.js'
 import adsRouter from './modules/advertisements/advertisements.routes.js'
 import subscriptionsRouter from './modules/subscriptions/subscriptions.routes.js'
 import locationsRouter from './modules/locations/locations.routes.js'
@@ -82,7 +82,7 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter)
 app.use('/api/auth', authRouter)
-app.use('/api/users', usersRouter)
+app.use('/api/profile', profileRouter)
 app.use('/api/ads', adsRouter)
 app.use('/api/subscriptions', subscriptionsRouter)
 app.use('/api/locations', locationsRouter)
