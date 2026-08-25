@@ -10,9 +10,11 @@
  * Uses Node.js built-in test runner (node:test) — no extra dependencies.
  * Run with: node --test tests/**\/*.test.js
  */
+import 'dotenv/config'
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import http from 'node:http'
+import { URL } from 'node:url'
 
 // Load environment before importing app
 process.env.NODE_ENV = 'test'

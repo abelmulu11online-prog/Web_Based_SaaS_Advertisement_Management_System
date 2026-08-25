@@ -15,7 +15,8 @@
  * Each test group cleans up after itself to stay isolated.
  */
 
-import { describe, it, before, after, beforeEach } from 'node:test'
+import 'dotenv/config'
+import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import pg from 'pg'
 
@@ -23,9 +24,11 @@ import pg from 'pg'
 
 process.env.NODE_ENV = 'test'
 
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres:root@localhost:5432/local_discovery'
+const DATABASE_URL = process.env.DATABASE_URL
+if (!DATABASE_URL) {
+  console.error('[schema.test] DATABASE_URL is not set.')
+  process.exit(1)
+}
 
 const pool = new pg.Pool({ connectionString: DATABASE_URL })
 
@@ -270,7 +273,7 @@ describe('Profile → User relationship', () => {
   })
 
   it('slug must be unique', async () => {
-    const { userId, profileId } = await makeFixtures('slug-uniq')
+    const { userId } = await makeFixtures('slug-uniq')
     const u2 = await one(`INSERT INTO users (email, password_hash) VALUES ('test-profile-slug-uniq2@x.com', 'h') RETURNING id`)
     const threw = await throws(
       () => one(`INSERT INTO profiles (user_id, display_name, slug) VALUES ($1, 'P2', 'test-provider-slug-uniq') RETURNING id`, [u2.id]),

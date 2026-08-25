@@ -13,7 +13,9 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import pinoHttp from 'pino-http'
+import pinoHttp from 'pino-http';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 
 import { config } from './config/index.js'
 import logger from './utils/logger.js'
@@ -23,7 +25,7 @@ import { errorHandler } from './middleware/errorHandler.js'
 // ── Module routers ────────────────────────────────────────────────────────────
 import healthRouter from './modules/health/health.routes.js'
 import authRouter from './modules/auth/auth.routes.js'
-import usersRouter from './modules/users/users.routes.js'
+import profileRouter from './modules/users/users.routes.js'
 import adsRouter from './modules/advertisements/advertisements.routes.js'
 import subscriptionsRouter from './modules/subscriptions/subscriptions.routes.js'
 import locationsRouter from './modules/locations/locations.routes.js'
@@ -80,14 +82,18 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter)
 app.use('/api/auth', authRouter)
-app.use('/api/users', usersRouter)
+app.use('/api/profile', profileRouter)
 app.use('/api/ads', adsRouter)
 app.use('/api/subscriptions', subscriptionsRouter)
 app.use('/api/locations', locationsRouter)
 app.use('/api/analytics', analyticsRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/notifications', notificationsRouter)
-
+app.get('/api-docs/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // ── 404 handler (after all routes) ───────────────────────────────────────────
 app.use(notFound)
 

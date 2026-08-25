@@ -10,6 +10,7 @@
  */
 import { ZodError } from 'zod'
 import logger from '../utils/logger.js'
+import { config } from '../config/index.js'
 
 // eslint-disable-next-line no-unused-vars
 export function errorHandler(err, req, res, next) {
@@ -24,6 +25,76 @@ export function errorHandler(err, req, res, next) {
       success: false,
       message: 'Validation failed',
       error: { code: 'VALIDATION_ERROR', issues },
+    })
+  }
+
+  // ── PostgreSQL unique constraint violations ───────────────────────────────────
+  if (err.code === '23505') {
+    // Extract constraint name from error message
+    const constraintMatch = err.message.match(/constraint "(.+?)"/)
+    const constraint = constraintMatch ? constraintMatch[1] : 'unknown'
+
+    // Map constraints to user-friendly error codes
+    if (constraint === 'users_email_key') {
+      logger.warn({ constraint }, 'Duplicate email attempt')
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this email already exists',
+        error: { code: 'DUPLICATE_EMAIL' },
+      })
+    }
+
+    if (constraint === 'users_phone_key') {
+      logger.warn({ constraint }, 'Duplicate phone attempt')
+      return res.status(409).json({
+        success: false,
+        message: 'An account with this phone number already exists',
+        error: { code: 'DUPLICATE_PHONE' },
+      })
+    }
+
+    if (constraint === 'idx_profiles_user_id' || constraint === 'profiles_user_id_key') {
+      logger.warn({ constraint }, 'Duplicate profile attempt')
+      return res.status(409).json({
+        success: false,
+        message: 'A profile already exists for this account',
+        error: { code: 'DUPLICATE_PROFILE' },
+      })
+    }
+
+    if (constraint === 'profiles_slug_key') {
+      logger.warn({ constraint }, 'Duplicate slug attempt')
+      return res.status(409).json({
+        success: false,
+        message: 'This slug is already taken',
+        error: { code: 'DUPLICATE_SLUG' },
+      })
+    }
+
+    if (constraint === 'business_hours_profile_id_day_of_week_key') {
+      logger.warn({ constraint }, 'Duplicate business hours entry')
+      return res.status(409).json({
+        success: false,
+        message: 'Duplicate business hours entry for the same day',
+        error: { code: 'DUPLICATE_BUSINESS_HOURS' },
+      })
+    }
+
+    if (constraint === 'social_links_profile_id_platform_key') {
+      logger.warn({ constraint }, 'Duplicate social link entry')
+      return res.status(409).json({
+        success: false,
+        message: 'A social link for this platform already exists',
+        error: { code: 'DUPLICATE_SOCIAL_LINK' },
+      })
+    }
+
+    // Generic duplicate error for other constraints
+    logger.warn({ constraint }, 'Duplicate constraint violation')
+    return res.status(409).json({
+      success: false,
+      message: 'A record with this information already exists',
+      error: { code: 'DUPLICATE_RECORD' },
     })
   }
 
@@ -71,7 +142,7 @@ export function errorHandler(err, req, res, next) {
   )
 
   // Return a safe response — no stack trace, no SQL, no internals
-  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isDevelopment = config.isDevelopment
 
   res.status(statusCode >= 100 && statusCode < 600 ? statusCode : 500).json({
     success: false,

@@ -89,9 +89,40 @@ export const config = {
 
   /** CORS — comma-separated list of allowed origins */
   cors: {
-    allowedOrigins: env('CORS_ORIGINS', 'http://localhost:5173')
+    allowedOrigins: env('CORS_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000, http://localhost:3001')
       .split(',')
       .map((o) => o.trim())
       .filter(Boolean),
+  },
+
+  /** Email verification settings */
+  emailVerification: {
+    /** Token expiration time (e.g., '24h', '1h', '30m') */
+    expiresIn: env('EMAIL_VERIFICATION_EXPIRES_IN', '24h'),
+  },
+
+  /** Password reset settings */
+  passwordReset: {
+    /** Token expiration time (e.g., '1h', '30m') - shorter than email verification for security */
+    expiresIn: env('PASSWORD_RESET_EXPIRES_IN', '1h'),
+  },
+
+  /** Refresh token settings */
+  refreshToken: {
+    /** Token expiration time (e.g., '7d', '30d') - longer than access tokens for persistent sessions */
+    expiresIn: env('REFRESH_TOKEN_EXPIRES_IN', '7d'),
+  },
+
+  /** Frontend URL for verification and reset links */
+  frontendUrl: env('FRONTEND_URL', 'http://localhost:5173'),
+
+  /** SMTP configuration for email delivery */
+  smtp: {
+    host: env('SMTP_HOST', 'smtp.gmail.com'),
+    port: parseInt(env('SMTP_PORT', '587'), 10),
+    secure: env('SMTP_SECURE', 'false') === 'true',
+    user: env('SMTP_USER', ''),
+    password: env('SMTP_PASSWORD', ''),
+    from: env('EMAIL_FROM', 'noreply@localdiscovery.com'),
   },
 }
