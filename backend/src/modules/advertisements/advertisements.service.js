@@ -16,6 +16,7 @@ import logger from '../../utils/logger.js'
 import pool from '../../db/index.js'
 import * as adsRepo from './advertisements.repository.js'
 import * as subsRepo from '../subscriptions/subscriptions.repository.js'
+import * as storageUtils from '../../utils/storage.js'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -490,6 +491,8 @@ export async function archiveAdvertisement(id, userId) {
  * Only DRAFT or ARCHIVED advertisements can be hard-deleted.
  * Published/Paused must be archived first.
  *
+ * Also deletes all images from Supabase Storage before removing the DB row.
+ *
  * @param {string} id
  * @param {string} userId
  * @returns {Promise<void>}
@@ -511,6 +514,14 @@ export async function deleteAdvertisement(id, userId) {
       409,
       'ADVERTISEMENT_NOT_DELETABLE',
     )
+  }
+
+  // Delete all images from Supabase Storage before removing the DB row
+  // (ON DELETE CASCADE handles the DB side, but not the storage files)
+  const images = await adsRepo.findImages(id)
+  const storagePaths = images.map((img) => img.storage_key).filter(Boolean)
+  if (storagePaths.length > 0) {
+    await storageUtils.deleteImages(storagePaths)
   }
 
   const deleted = await adsRepo.deleteById(id, userId)
@@ -600,6 +611,8 @@ export async function addImage(advertisementId, userId, imageData) {
 
 /**
  * Delete an image from an advertisement.
+ * Also deletes the file from Supabase Storage if a storage_key is present.
+ *
  * @param {string} advertisementId
  * @param {string} imageId
  * @param {string} userId - From req.user.id
@@ -621,7 +634,13 @@ export async function deleteImage(advertisementId, imageId, userId) {
     throw createError('Image not found', 404, 'IMAGE_NOT_FOUND')
   }
 
+  // Delete from DB first — if storage delete fails, we log but don't block
   await adsRepo.deleteImage(imageId, advertisementId)
+
+  // Delete from Supabase Storage (non-blocking — orphan is acceptable vs blocking user)
+  if (image.storage_key) {
+    await storageUtils.deleteImage(image.storage_key)
+  }
 
   // If the deleted image was the primary, promote the next image
   if (image.is_primary) {
@@ -642,6 +661,115 @@ export async function deleteImage(advertisementId, imageId, userId) {
   }
 
   logger.info({ userId, advertisementId, imageId }, 'Advertisement image deleted')
+}
+
+/**
+ * Upload multiple image files to Supabase Storage and save metadata to DB.
+ *
+ * This is the new file-upload path (replaces the URL-paste workflow).
+ * Files come from multer (req.files) as Buffers with validated MIME types.
+ *
+ * @param {string} advertisementId
+ * @param {string} userId - From req.user.id
+ * @param {Array<{ buffer: Buffer, mimetype: string, originalname: string }>} files
+ * @returns {Promise<object[]>} Array of created image records
+ */
+export async function uploadImages(advertisementId, userId, files) {
+  const ad = await adsRepo.findById(advertisementId)
+
+  if (!ad) {
+    throw createError('Advertisement not found', 404, 'ADVERTISEMENT_NOT_FOUND')
+  }
+
+  if (ad.user_id !== userId) {
+    throw createError('Advertisement not found', 404, 'ADVERTISEMENT_NOT_FOUND')
+  }
+
+  if (!files || files.length === 0) {
+    throw createError('No files provided', 422, 'NO_FILES')
+  }
+
+  const currentCount = await adsRepo.countImages(advertisementId)
+
+  // Phase 6: plan-derived image limit
+  const subscription = await subsRepo.findByUserId(userId)
+  const planImageLimit = subscription?.max_images_per_ad ?? 3
+
+  if (currentCount + files.length > planImageLimit) {
+    const remaining = Math.max(0, planImageLimit - currentCount)
+    const planName = subscription?.plan_display_name || 'Free'
+    throw createError(
+      `Your ${planName} plan allows ${planImageLimit} images per ad. ` +
+      `You have ${currentCount} — you can add ${remaining} more.`,
+      409,
+      'IMAGE_LIMIT_REACHED',
+    )
+  }
+
+  // Upload all files to Supabase Storage (atomic — cleanup on partial failure)
+  const uploadResults = await storageUtils.uploadImages(
+    files.map((f) => ({ buffer: f.buffer, mimeType: f.mimetype })),
+    advertisementId,
+  )
+
+  // Save image records to PostgreSQL
+  const savedImages = []
+  const isFirstBatch = currentCount === 0
+
+  try {
+    for (let i = 0; i < uploadResults.length; i++) {
+      const { publicUrl, storagePath } = uploadResults[i]
+      const isFirstImage = isFirstBatch && i === 0
+
+      if (isFirstImage) {
+        // Use a transaction to atomically clear old primary and set new one
+        const client = await pool.connect()
+        try {
+          await client.query('BEGIN')
+          await adsRepo.clearPrimaryImage(advertisementId, client)
+          const img = await adsRepo.addImage({
+            advertisementId,
+            imageUrl: publicUrl,
+            storageKey: storagePath,
+            altText: null,
+            sortOrder: currentCount + i,
+            isPrimary: true,
+          })
+          savedImages.push(img)
+          await client.query('COMMIT')
+        } catch (err) {
+          await client.query('ROLLBACK')
+          throw err
+        } finally {
+          client.release()
+        }
+      } else {
+        const img = await adsRepo.addImage({
+          advertisementId,
+          imageUrl: publicUrl,
+          storageKey: storagePath,
+          altText: null,
+          sortOrder: currentCount + i,
+          isPrimary: false,
+        })
+        savedImages.push(img)
+      }
+    }
+  } catch (dbErr) {
+    // DB save failed after storage upload succeeded — clean up storage orphans
+    const uploadedPaths = uploadResults.map((r) => r.storagePath)
+    await storageUtils.deleteImages(uploadedPaths).catch((cleanupErr) =>
+      logger.error({ err: cleanupErr }, 'Storage cleanup after DB failure failed'),
+    )
+    throw dbErr
+  }
+
+  logger.info(
+    { userId, advertisementId, count: savedImages.length },
+    'Advertisement images uploaded',
+  )
+
+  return savedImages
 }
 
 /**

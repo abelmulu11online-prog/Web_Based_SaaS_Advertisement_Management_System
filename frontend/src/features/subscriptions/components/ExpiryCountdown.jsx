@@ -1,51 +1,34 @@
-/**
- * ExpiryCountdown.jsx — "Expires in N days — Renew Now" banner.
- * Renders only when days_remaining <= 3 on an ACTIVE subscription.
- */
+import { AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export function ExpiryCountdown({ subscription }) {
   if (!subscription) return null
+  const { days_remaining, status } = subscription
 
-  const { status, days_remaining } = subscription
+  if (status === 'EXPIRED') {
+    return (
+      <div className="flex items-start gap-2.5 bg-danger-bg border border-red-200 rounded-lg px-4 py-3">
+        <AlertTriangle size={14} className="text-danger mt-0.5 shrink-0" />
+        <p className="text-[13px] text-danger">
+          Your subscription has expired and your listings have been paused.{' '}
+          <Link to="/pricing" className="font-semibold underline">Renew now</Link> to re-publish them.
+        </p>
+      </div>
+    )
+  }
 
-  // Only show for ACTIVE subscriptions expiring in 3 days or fewer
-  if (status !== 'ACTIVE' || days_remaining === null || days_remaining > 3) return null
+  if (days_remaining != null && days_remaining <= 3 && days_remaining >= 0) {
+    return (
+      <div className="flex items-start gap-2.5 bg-warning-bg border border-yellow-200 rounded-lg px-4 py-3">
+        <AlertTriangle size={14} className="text-warning mt-0.5 shrink-0" />
+        <p className="text-[13px] text-warning">
+          Your subscription expires in{' '}
+          <strong>{days_remaining === 0 ? 'less than a day' : `${days_remaining} day${days_remaining > 1 ? 's' : ''}`}</strong>.{' '}
+          <Link to="/pricing" className="font-semibold underline text-warning">Renew now</Link> to keep your listings active.
+        </p>
+      </div>
+    )
+  }
 
-  return (
-    <div
-      style={{
-        background: '#fef3c7',
-        border: '1px solid #fbbf24',
-        borderRadius: '10px',
-        padding: '12px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        flexWrap: 'wrap',
-      }}
-    >
-      <span style={{ fontSize: '14px', color: '#92400e', fontWeight: 500 }}>
-        ⚠️ Your plan expires in{' '}
-        <strong>{days_remaining} day{days_remaining !== 1 ? 's' : ''}</strong>
-        . Renew to keep your ads published.
-      </span>
-      <Link
-        to="/pricing"
-        style={{
-          background: '#f59e0b',
-          color: '#fff',
-          padding: '6px 16px',
-          borderRadius: '8px',
-          fontSize: '13px',
-          fontWeight: 600,
-          textDecoration: 'none',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        Renew Now →
-      </Link>
-    </div>
-  )
+  return null
 }

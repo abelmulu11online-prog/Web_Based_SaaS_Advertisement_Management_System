@@ -100,46 +100,89 @@ const rejectedFields = {
  *
  * Required: display_name, slug
  * Optional: description, category_id, location_id, contact_phone,
- *           contact_email, website_url, is_published
+ *           contact_email, website_url, is_published, and all extended fields.
  */
 export const createProfileSchema = z.object({
   body: z
     .object({
       display_name: displayNameSchema,
       slug: slugSchema,
-      description: descriptionSchema,
+      description: z.union([descriptionSchema, z.null()]).optional(),
       category_id: uuidSchema.optional(),
       location_id: uuidSchema.optional(),
-      contact_phone: contactPhoneSchema,
-      contact_email: contactEmailSchema,
-      website_url: websiteUrlSchema,
+      contact_phone: z.union([contactPhoneSchema, z.null()]).optional(),
+      contact_email: z.union([contactEmailSchema, z.null()]).optional(),
+      website_url: z.union([websiteUrlSchema, z.null()]).optional(),
       is_published: z.boolean().optional(),
+      // Extended fields
+      profile_type: z.enum(['PERSONAL','PROFESSIONAL','FREELANCER','SHOP','BUSINESS','COMPANY','ORGANIZATION']).optional(),
+      headline: z.union([z.string().max(150), z.null()]).optional(),
+      country:  z.union([z.string().max(100), z.null()]).optional(),
+      region:   z.union([z.string().max(100), z.null()]).optional(),
+      city:     z.union([z.string().max(100), z.null()]).optional(),
       ...rejectedFields,
     })
-    .strict(),
+    .passthrough(), // strip unknown keys instead of erroring
 })
 
 /**
  * Profile update schema (PATCH semantics — all profile fields optional).
  *
  * At least one updatable field must be provided.
+ * Includes all original fields plus the new extended fields from migration 021.
+ * Uses passthrough() instead of strict() so unknown client-state keys are
+ * stripped by the middleware rather than causing 422 errors.
  */
+
+// Nullable string helper — accepts string or null
+const nullableStr = (max = 200) =>
+  z.union([z.string().max(max), z.null()]).optional()
+
 export const updateProfileSchema = z.object({
   body: z
     .object({
+      // Original fields
       display_name: displayNameSchema.optional(),
       slug: slugSchema.optional(),
-      description: descriptionSchema,
+      description: z.union([descriptionSchema, z.null()]).optional(),
       category_id: uuidSchema.optional(),
       location_id: uuidSchema.optional(),
-      contact_phone: contactPhoneSchema,
-      contact_email: contactEmailSchema,
-      website_url: websiteUrlSchema,
+      contact_phone: z.union([contactPhoneSchema, z.null()]).optional(),
+      contact_email: z.union([contactEmailSchema, z.null()]).optional(),
+      website_url: z.union([websiteUrlSchema, z.null()]).optional(),
       is_published: z.boolean().optional(),
+      // Extended fields (migration 021)
+      profile_type: z.enum(['PERSONAL','PROFESSIONAL','FREELANCER','SHOP','BUSINESS','COMPANY','ORGANIZATION']).optional(),
+      headline:     nullableStr(150),
+      country:      nullableStr(100),
+      region:       nullableStr(100),
+      city:         nullableStr(100),
+      area:         nullableStr(100),
+      address_line: nullableStr(300),
+      latitude:     z.union([z.coerce.number().min(-90).max(90), z.null()]).optional(),
+      longitude:    z.union([z.coerce.number().min(-180).max(180), z.null()]).optional(),
+      location_precision: z.enum(['CITY','DISTRICT','FULL']).optional(),
+      whatsapp:     z.union([
+        z.string().regex(/^\+?[1-9][\d\s]{6,14}$/, 'Invalid WhatsApp number').transform(v => v.replace(/\s/g, '')),
+        z.null(),
+      ]).optional(),
+      telegram_username: nullableStr(100),
+      phone_visibility:  z.enum(['PUBLIC','LOGGED_IN','HIDDEN']).optional(),
+      email_visibility:  z.enum(['PUBLIC','LOGGED_IN','HIDDEN']).optional(),
       ...rejectedFields,
     })
-    .strict()
-    .refine((data) => Object.keys(data).length > 0, {
+    .passthrough() // strip unknown keys instead of rejecting them
+    .refine((data) => {
+      // After stripping rejected fields, at least one valid key must remain
+      const knownKeys = [
+        'display_name','slug','description','category_id','location_id',
+        'contact_phone','contact_email','website_url','is_published',
+        'profile_type','headline','country','region','city','area','address_line',
+        'latitude','longitude','location_precision','whatsapp','telegram_username',
+        'phone_visibility','email_visibility',
+      ]
+      return knownKeys.some(k => k in data)
+    }, {
       message: 'At least one field must be provided for update',
       path: [],
     }),

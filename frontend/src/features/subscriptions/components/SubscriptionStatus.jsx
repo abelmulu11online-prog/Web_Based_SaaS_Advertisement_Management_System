@@ -1,77 +1,44 @@
-/**
- * SubscriptionStatus.jsx — Current plan badge + billing period info.
- */
+import { Badge } from '../../../components/ui/Badge.jsx'
 
-const STATUS_COLORS = {
-  FREE:    { bg: '#f3f4f6', text: '#374151' },
-  ACTIVE:  { bg: '#dcfce7', text: '#166534' },
-  EXPIRED: { bg: '#fee2e2', text: '#991b1b' },
+const STATUS = {
+  ACTIVE:  { label: 'Active',  variant: 'success' },
+  FREE:    { label: 'Free',    variant: 'default' },
+  EXPIRED: { label: 'Expired', variant: 'danger'  },
 }
 
 export function SubscriptionStatus({ subscription }) {
   if (!subscription) return null
-
-  const { status, plan, current_period_end, days_remaining } = subscription
-  const colors = STATUS_COLORS[status] || STATUS_COLORS.FREE
+  const { label, variant } = STATUS[subscription.status] || { label: subscription.status, variant: 'default' }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-      }}
-    >
-      {/* Plan name + status badge */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-h)' }}>
-          {plan.display_name} Plan
-        </span>
-        <span
-          style={{
-            padding: '2px 12px',
-            borderRadius: '9999px',
-            background: colors.bg,
-            color: colors.text,
-            fontSize: '12px',
-            fontWeight: 700,
-          }}
-        >
-          {status}
-        </span>
-        {plan.is_featured && (
-          <span
-            style={{
-              padding: '2px 10px',
-              borderRadius: '9999px',
-              background: '#fbbf24',
-              color: '#1a1a1a',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}
-          >
-            FEATURED
-          </span>
+    <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="text-lg font-bold text-ink">{subscription.plan.display_name}</h3>
+          <Badge variant={variant} dot>{label}</Badge>
+        </div>
+        {subscription.plan.price_etb > 0 ? (
+          <p className="text-sm text-ink-2">ETB {Number(subscription.plan.price_etb).toLocaleString()} / month</p>
+        ) : (
+          <p className="text-sm text-ink-2">Free plan</p>
         )}
       </div>
 
-      {/* Billing info */}
-      {current_period_end ? (
-        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text)' }}>
-          {status === 'EXPIRED'
-            ? `Expired on ${new Date(current_period_end).toLocaleDateString()}`
-            : `Active until ${new Date(current_period_end).toLocaleDateString()} (${days_remaining} day${days_remaining !== 1 ? 's' : ''} remaining)`}
-        </p>
-      ) : (
-        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text)' }}>
-          Free plan — no expiry
-        </p>
+      {subscription.current_period_end && (
+        <div className="text-right">
+          <p className="text-[11px] text-ink-3 uppercase tracking-widest mb-0.5">Renews</p>
+          <p className="text-[13px] font-medium text-ink">
+            {new Date(subscription.current_period_end).toLocaleDateString('en-GB', {
+              day: 'numeric', month: 'short', year: 'numeric',
+            })}
+          </p>
+          {subscription.days_remaining != null && (
+            <p className={`text-[12px] mt-0.5 ${subscription.days_remaining <= 5 ? 'text-warning font-medium' : 'text-ink-3'}`}>
+              {subscription.days_remaining} days remaining
+            </p>
+          )}
+        </div>
       )}
-
-      {/* Price */}
-      <p style={{ margin: 0, fontSize: '14px', color: 'var(--text)' }}>
-        {plan.price_etb === 0 ? 'Free forever' : `ETB ${Number(plan.price_etb).toLocaleString()} / month`}
-      </p>
     </div>
   )
 }

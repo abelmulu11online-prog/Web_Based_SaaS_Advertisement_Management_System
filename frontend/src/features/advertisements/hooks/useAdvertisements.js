@@ -176,6 +176,20 @@ export function useDeleteAdvertisement() {
 }
 
 /**
+ * Upload images to Supabase Storage for an advertisement.
+ */
+export function useUploadAdvertisementImages(advertisementId) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (files) => adsService.uploadAdvertisementImages(advertisementId, files),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adsKeys.myDetail(advertisementId) })
+      queryClient.invalidateQueries({ queryKey: ['advertisements', 'published'] })
+    },
+  })
+}
+
+/**
  * Add an image to an advertisement.
  */
 export function useAddAdvertisementImage(advertisementId) {

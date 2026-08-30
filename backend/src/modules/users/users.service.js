@@ -28,19 +28,37 @@ function formatProfile(row) {
     user_id: row.user_id,
     display_name: row.display_name,
     slug: row.slug,
+    profile_type: row.profile_type || 'PERSONAL',
+    headline: row.headline || null,
     description: row.description,
+    avatar_url: row.avatar_url || null,
+    cover_url: row.cover_url || null,
     category_id: row.category_id,
     category_name: row.category_name || null,
     category_slug: row.category_slug || null,
     location_id: row.location_id,
-    location_city: row.location_city || null,
-    location_region: row.location_region || null,
-    location_country: row.location_country || null,
+    location_city: row.location_city || row.city || null,
+    location_region: row.location_region || row.region || null,
+    location_country: row.location_country || row.country || null,
+    city: row.city || null,
+    region: row.region || null,
+    country: row.country || null,
+    area: row.area || null,
+    address_line: row.address_line || null,
+    latitude: row.latitude ? parseFloat(row.latitude) : null,
+    longitude: row.longitude ? parseFloat(row.longitude) : null,
+    location_precision: row.location_precision || 'CITY',
     contact_phone: row.contact_phone,
     contact_email: row.contact_email,
     website_url: row.website_url,
+    whatsapp: row.whatsapp || null,
+    telegram_username: row.telegram_username || null,
+    phone_visibility: row.phone_visibility || 'PUBLIC',
+    email_visibility: row.email_visibility || 'PUBLIC',
     is_published: row.is_published,
     is_verified: row.is_verified,
+    verification_status: row.verification_status || 'UNVERIFIED',
+    completion_score: row.completion_score || 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
   }
@@ -156,6 +174,7 @@ export async function createProfile(userId, data) {
 /**
  * Update the authenticated user's profile.
  * Enforces: ownership via user_id, slug uniqueness if slug is changed.
+ * Handles both legacy fields and new extended fields (profile_type, headline, location, etc.)
  * @param {string} userId - From req.user.id
  * @param {object} data - Validated fields to update
  * @returns {Promise<object>} Updated profile data
@@ -180,6 +199,11 @@ export async function updateProfile(userId, data) {
 
   // If slug is being changed, check uniqueness (excluding current profile)
   if (data.slug && data.slug !== existing.slug) {
+    // Check reserved slugs
+    const { RESERVED_SLUGS } = await import('../profiles/profiles.repository.js')
+    if (RESERVED_SLUGS.has(data.slug.toLowerCase())) {
+      throw createError('This slug is reserved and cannot be used', 409, 'RESERVED_SLUG')
+    }
     const slugOwner = await profileRepo.findProfileBySlug(data.slug)
     if (slugOwner && slugOwner.id !== existing.id) {
       throw createError(

@@ -33,6 +33,7 @@ import analyticsRouter from './modules/analytics/analytics.routes.js'
 import adminRouter from './modules/admin/admin.routes.js'
 import notificationsRouter from './modules/notifications/notifications.routes.js'
 import categoriesRouter from './modules/categories/categories.routes.js'
+import { publicProfilesRouter, dashboardProfileRouter } from './modules/profiles/profiles.routes.js'
 
 // ── CORS configuration ───────────────────────────────────────────────────────
 
@@ -91,6 +92,8 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 app.use('/api/health', healthRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/profile', profileRouter)
+app.use('/api/profile', dashboardProfileRouter)
+app.use('/api/profiles', publicProfilesRouter)
 app.use('/api/ads', adsRouter)
 app.use('/api/locations', locationsRouter)
 app.use('/api/analytics', analyticsRouter)

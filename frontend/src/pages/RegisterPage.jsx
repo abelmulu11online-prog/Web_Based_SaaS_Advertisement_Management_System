@@ -1,146 +1,165 @@
-/**
- * RegisterPage.jsx — Create a new account with email + password.
- * Route: /register
- *
- * After successful registration, auto-logs in and redirects to /pricing
- * so the user can immediately pick a plan.
- */
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Mail, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { FormField, Input } from '../components/ui/FormField.jsx'
 import { register, login } from '../features/auth/services/authService.js'
 
+const PASSWORD_RULES = [
+  { label: 'At least 8 characters', test: v => v.length >= 8 },
+  { label: 'Uppercase letter', test: v => /[A-Z]/.test(v) },
+  { label: 'Number', test: v => /[0-9]/.test(v) },
+  { label: 'Special character', test: v => /[^a-zA-Z0-9]/.test(v) },
+]
+
 export default function RegisterPage() {
   const navigate = useNavigate()
-
-  const [form, setForm]     = useState({ email: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ email: '', password: '', confirm: '' })
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPass, setShowPass] = useState(false)
 
-  function handleChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-    setErrors(err => ({ ...err, [e.target.name]: '' }))
+  function set(key, val) {
+    setForm(f => ({ ...f, [key]: val }))
+    setErrors(e => ({ ...e, [key]: '' }))
     setServerError('')
   }
 
   function validate() {
     const e = {}
-    if (!form.email)    e.email    = 'Email is required.'
+    if (!form.email) e.email = 'Email is required.'
     if (!form.password) e.password = 'Password is required.'
-    else if (form.password.length < 8) e.password = 'At least 8 characters.'
-    else if (!/[A-Z]/.test(form.password)) e.password = 'Include at least one uppercase letter.'
-    else if (!/[0-9]/.test(form.password)) e.password = 'Include at least one number.'
-    else if (!/[^a-zA-Z0-9]/.test(form.password)) e.password = 'Include at least one special character.'
+    else if (PASSWORD_RULES.some(r => !r.test(form.password))) e.password = 'Password does not meet all requirements.'
     if (form.password !== form.confirm) e.confirm = 'Passwords do not match.'
     return e
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    const validationErrors = validate()
-    if (Object.keys(validationErrors).length) {
-      setErrors(validationErrors)
-      return
-    }
+    const v = validate()
+    if (Object.keys(v).length) { setErrors(v); return }
     setLoading(true)
-    setServerError('')
     try {
-      // Register then auto-login
       await register({ email: form.email, password: form.password })
       const data = await login({ identifier: form.email, password: form.password })
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
-      // Send to pricing page so they can subscribe right away
       navigate('/pricing', { replace: true })
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Registration failed. Please try again.'
-      setServerError(msg)
+      setServerError(err?.response?.data?.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  const pwStrength = PASSWORD_RULES.filter(r => r.test(form.password)).length
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-canvas flex flex-col">
       <Navbar />
-      <main style={{ maxWidth: '400px', margin: '0 auto', padding: '60px 20px' }}>
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-[400px]">
 
-        <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-h)', margin: '0 0 6px' }}>
-          Create your account
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--text)', margin: '0 0 28px' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-            Log in
-          </Link>
-        </p>
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-ink mb-1.5">Create your account</h1>
+            <p className="text-sm text-ink-2">
+              Already have an account?{' '}
+              <Link to="/login" className="text-brand font-medium hover:underline">Log in</Link>
+            </p>
+          </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <FormField label="Email" required error={errors.email}>
-            <Input
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-              error={errors.email}
-              autoFocus
-              autoComplete="email"
-            />
-          </FormField>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+            <FormField label="Email address" required error={errors.email}>
+              <div className="relative">
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={e => set('email', e.target.value)}
+                  error={errors.email}
+                  className="pl-9"
+                  autoComplete="email"
+                  autoFocus
+                />
+              </div>
+            </FormField>
 
-          <FormField
-            label="Password"
-            required
-            error={errors.password}
-            hint="Min 8 chars, uppercase, number, and special character"
-          >
-            <Input
-              name="password"
-              type="password"
-              placeholder="Create a strong password"
-              value={form.password}
-              onChange={handleChange}
-              error={errors.password}
-              autoComplete="new-password"
-            />
-          </FormField>
+            <FormField label="Password" required error={errors.password}>
+              <div className="relative">
+                <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <Input
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Create a strong password"
+                  value={form.password}
+                  onChange={e => set('password', e.target.value)}
+                  error={errors.password}
+                  className="pl-9 pr-10"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(s => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors"
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                >
+                  {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+              {/* Password strength */}
+              {form.password.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-2">
+                    {[0,1,2,3].map(i => (
+                      <div key={i} className={`flex-1 h-1 rounded-full transition-colors duration-200 ${i < pwStrength ? ['bg-red-400','bg-orange-400','bg-yellow-400','bg-brand'][pwStrength-1] : 'bg-border'}`} />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    {PASSWORD_RULES.map(r => (
+                      <span key={r.label} className={`flex items-center gap-1.5 text-[11px] transition-colors ${r.test(form.password) ? 'text-success' : 'text-ink-3'}`}>
+                        <CheckCircle2 size={10} />
+                        {r.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </FormField>
 
-          <FormField label="Confirm password" required error={errors.confirm}>
-            <Input
-              name="confirm"
-              type="password"
-              placeholder="Repeat your password"
-              value={form.confirm}
-              onChange={handleChange}
-              error={errors.confirm}
-              autoComplete="new-password"
-            />
-          </FormField>
+            <FormField label="Confirm password" required error={errors.confirm}>
+              <div className="relative">
+                <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <Input
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Repeat your password"
+                  value={form.confirm}
+                  onChange={e => set('confirm', e.target.value)}
+                  error={errors.confirm}
+                  className="pl-9"
+                  autoComplete="new-password"
+                />
+              </div>
+            </FormField>
 
-          {serverError && (
-            <div style={{
-              background: '#fee2e2', border: '1px solid #fca5a5',
-              borderRadius: '8px', padding: '10px 14px',
-              fontSize: '14px', color: '#991b1b',
-            }}>
-              {serverError}
-            </div>
-          )}
+            {serverError && (
+              <div className="bg-danger-bg border border-red-200 rounded px-3.5 py-2.5 text-[13px] text-danger">
+                {serverError}
+              </div>
+            )}
 
-          <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: '4px' }}>
-            Create account
-          </Button>
-        </form>
+            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth className="mt-1">
+              Create account
+            </Button>
+          </form>
 
-        <p style={{ fontSize: '13px', color: 'var(--text)', marginTop: '20px', textAlign: 'center', lineHeight: 1.5 }}>
-          By signing up you agree to our terms of service.
-          After registering you'll be taken to the pricing page to choose a plan.
-        </p>
-      </main>
+          <p className="text-center text-[12px] text-ink-3 mt-5 leading-relaxed">
+            After signing up you'll be taken to our pricing page.<br />
+            Start for free — no credit card required.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

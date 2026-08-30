@@ -1,104 +1,241 @@
-/**
- * HomePage — public-facing landing page.
- * Phase 5: links to advertisement listing and dashboard.
- */
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Search, MapPin, ArrowRight, Briefcase, Home, Wrench, ShoppingBag, Cpu, Car, Star, Shield, Zap } from 'lucide-react'
 import { Navbar } from '../components/layout/Navbar.jsx'
+import { Footer } from '../components/layout/Footer.jsx'
+import { Button } from '../components/ui/Button.jsx'
+import { ListingGrid } from '../features/advertisements/components/ListingGrid.jsx'
+import { useAdvertisements } from '../features/advertisements/hooks/useAdvertisements.js'
+
+const CATEGORIES = [
+  { label: 'All', value: '', icon: null },
+  { label: 'Products', value: 'Products', icon: <ShoppingBag size={15} /> },
+  { label: 'Services', value: 'Services', icon: <Wrench size={15} /> },
+  { label: 'Jobs', value: 'Jobs', icon: <Briefcase size={15} /> },
+  { label: 'Properties', value: 'Properties', icon: <Home size={15} /> },
+  { label: 'Electronics', value: 'Electronics', icon: <Cpu size={15} /> },
+  { label: 'Vehicles', value: 'Vehicles', icon: <Car size={15} /> },
+]
+
+const FEATURED_CITIES = [
+  'Addis Ababa', 'Gondar', 'Bahir Dar', 'Hawassa', 'Mekelle', 'Dire Dawa', 'Jimma', 'Adama',
+]
+
+const TRUST_ITEMS = [
+  {
+    icon: <Shield size={20} className="text-brand" />,
+    title: 'Verified advertisers',
+    desc: 'Profiles are reviewed to keep the platform trustworthy.',
+  },
+  {
+    icon: <Zap size={20} className="text-brand" />,
+    title: 'Fast publishing',
+    desc: 'Your listing goes live in minutes after creation.',
+  },
+  {
+    icon: <Star size={20} className="text-brand" />,
+    title: 'Affordable plans',
+    desc: 'Start for free. Upgrade when you need more reach.',
+  },
+]
 
 export default function HomePage() {
+  const navigate = useNavigate()
+  const [search, setSearch] = useState('')
+  const [location, setLocation] = useState('')
+  const [activeCategory, setActiveCategory] = useState('')
+
+  const { data: adsData, isLoading } = useAdvertisements({ page_size: 8 })
+  const ads = adsData?.advertisements || adsData || []
+
+  function handleSearch(e) {
+    e.preventDefault()
+    const params = new URLSearchParams()
+    if (search) params.set('search', search)
+    if (location) params.set('location', location)
+    if (activeCategory) params.set('category', activeCategory)
+    navigate(`/ads?${params.toString()}`)
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="flex flex-col min-h-screen bg-canvas">
       <Navbar />
 
-      <main>
-        {/* Hero */}
-        <section
-          style={{
-            padding: '80px 20px',
-            maxWidth: '700px',
-            margin: '0 auto',
-            textAlign: 'center',
-          }}
-        >
-          <h1 style={{ fontSize: '48px', marginBottom: '16px', letterSpacing: '-1.5px' }}>
-            Discover Local Businesses &amp; Services
-          </h1>
-          <p style={{ fontSize: '18px', color: 'var(--text)', marginBottom: '36px', lineHeight: 1.6 }}>
-            Browse thousands of advertisements for products, services, skills, jobs, and more.
-            Connect directly with advertisers — no middleman, no platform fees.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <Link
-              to="/ads"
-              style={{
-                background: 'var(--accent)',
-                color: '#fff',
-                textDecoration: 'none',
-                padding: '14px 28px',
-                borderRadius: '10px',
-                fontWeight: 600,
-                fontSize: '16px',
-              }}
-            >
-              Browse Advertisements
-            </Link>
-            <Link
-              to="/dashboard"
-              style={{
-                background: 'var(--code-bg)',
-                color: 'var(--text-h)',
-                textDecoration: 'none',
-                padding: '14px 28px',
-                borderRadius: '10px',
-                fontWeight: 600,
-                fontSize: '16px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              Post an Advertisement
-            </Link>
+      <main className="flex-1">
+        {/* ── Hero ─────────────────────────────────────────────────────── */}
+        <section className="bg-surface border-b border-border">
+          <div className="max-w-3xl mx-auto px-4 py-14 sm:py-20 text-center">
+            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-ink tracking-tight leading-tight mb-4">
+              Find what you need in<br className="hidden sm:block" />{' '}
+              <span className="text-brand">Ethiopia's local marketplace</span>
+            </h1>
+            <p className="text-base sm:text-lg text-ink-2 mb-10 max-w-xl mx-auto leading-relaxed">
+              Browse products, services, jobs, and businesses near you. Connect directly — no middleman.
+            </p>
+
+            {/* Search form */}
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
+              <div className="flex-1 relative">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="What are you looking for?"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full h-11 pl-9 pr-3 bg-canvas border border-border-2 rounded text-sm text-ink placeholder:text-ink-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all duration-150"
+                />
+              </div>
+              <div className="relative sm:w-48">
+                <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Location"
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  className="w-full h-11 pl-8 pr-3 bg-canvas border border-border-2 rounded text-sm text-ink placeholder:text-ink-3 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-all duration-150"
+                />
+              </div>
+              <Button type="submit" variant="primary" size="lg" icon={<Search size={15} />}>
+                Search
+              </Button>
+            </form>
+
+            {/* Popular cities */}
+            <div className="flex items-center gap-2 flex-wrap justify-center mt-6">
+              <span className="text-xs text-ink-3">Popular:</span>
+              {FEATURED_CITIES.map(city => (
+                <button
+                  key={city}
+                  onClick={() => { setLocation(city); navigate(`/ads?location=${city}`) }}
+                  className="text-xs text-ink-2 hover:text-brand underline underline-offset-2 transition-colors"
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Features */}
-        <section
-          style={{
-            padding: '40px 20px 80px',
-            maxWidth: '900px',
-            margin: '0 auto',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '20px',
-            }}
-          >
-            {[
-              { icon: '🛍️', title: 'Products', desc: 'Find items for sale near you' },
-              { icon: '🔧', title: 'Services', desc: 'Hire skilled professionals' },
-              { icon: '💡', title: 'Skills', desc: 'Connect with talented individuals' },
-              { icon: '💼', title: 'Jobs', desc: 'Discover opportunities nearby' },
-            ].map((f) => (
-              <div
-                key={f.title}
-                style={{
-                  padding: '24px',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  background: 'var(--bg)',
-                  textAlign: 'left',
-                }}
-              >
-                <div style={{ fontSize: '32px', marginBottom: '10px' }}>{f.icon}</div>
-                <h3 style={{ margin: '0 0 6px', fontSize: '16px' }}>{f.title}</h3>
-                <p style={{ margin: 0, fontSize: '14px', color: 'var(--text)' }}>{f.desc}</p>
+        {/* ── Category nav ─────────────────────────────────────────────── */}
+        <section className="border-b border-border bg-surface">
+          <div className="max-w-7xl mx-auto px-4 py-1">
+            <div className="flex items-center gap-1 overflow-x-auto py-2 scrollbar-hide">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.value}
+                  onClick={() => {
+                    setActiveCategory(cat.value)
+                    navigate(`/ads${cat.value ? `?category=${cat.value}` : ''}`)
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded text-[13px] font-medium whitespace-nowrap transition-all duration-150 ${
+                    activeCategory === cat.value
+                      ? 'bg-brand text-white'
+                      : 'bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink'
+                  }`}
+                >
+                  {cat.icon}
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Recent listings ──────────────────────────────────────────── */}
+        <section className="max-w-7xl mx-auto px-4 py-10">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-ink">Recent listings</h2>
+              <p className="text-sm text-ink-2 mt-0.5">Browse the latest from across Ethiopia</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              iconRight={<ArrowRight size={14} />}
+              onClick={() => navigate('/ads')}
+            >
+              View all
+            </Button>
+          </div>
+          <ListingGrid ads={Array.isArray(ads) ? ads : []} loading={isLoading} cols={4} />
+        </section>
+
+        {/* ── Browse by category cards ──────────────────────────────────── */}
+        <section className="border-t border-border bg-surface">
+          <div className="max-w-7xl mx-auto px-4 py-12">
+            <h2 className="text-xl font-bold text-ink mb-1">Browse by category</h2>
+            <p className="text-sm text-ink-2 mb-7">Find exactly what you're looking for</p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {[
+                { label: 'Products', icon: <ShoppingBag size={22} />, color: 'text-orange-600 bg-orange-50', q: 'Products' },
+                { label: 'Services', icon: <Wrench size={22} />, color: 'text-blue-600 bg-blue-50', q: 'Services' },
+                { label: 'Jobs', icon: <Briefcase size={22} />, color: 'text-green-700 bg-green-50', q: 'Jobs' },
+                { label: 'Properties', icon: <Home size={22} />, color: 'text-purple-600 bg-purple-50', q: 'Properties' },
+                { label: 'Electronics', icon: <Cpu size={22} />, color: 'text-cyan-700 bg-cyan-50', q: 'Electronics' },
+                { label: 'Vehicles', icon: <Car size={22} />, color: 'text-rose-600 bg-rose-50', q: 'Vehicles' },
+              ].map(({ label, icon, color, q }) => (
+                <button
+                  key={label}
+                  onClick={() => navigate(`/ads?category=${q}`)}
+                  className="flex flex-col items-center gap-3 p-5 bg-canvas border border-border rounded-xl hover:border-border-2 hover:shadow-sm transition-all duration-150 text-center group"
+                >
+                  <div className={`p-2.5 rounded-lg ${color} group-hover:scale-110 transition-transform duration-150`}>
+                    {icon}
+                  </div>
+                  <span className="text-[13px] font-medium text-ink">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Trust section ─────────────────────────────────────────────── */}
+        <section className="max-w-7xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {TRUST_ITEMS.map(({ icon, title, desc }) => (
+              <div key={title} className="flex gap-4 items-start p-5 bg-surface border border-border rounded-xl">
+                <div className="p-2.5 bg-brand-light rounded-lg shrink-0">{icon}</div>
+                <div>
+                  <h3 className="text-[14px] font-semibold text-ink mb-1">{title}</h3>
+                  <p className="text-[13px] text-ink-2 leading-relaxed">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </section>
+
+        {/* ── CTA banner ────────────────────────────────────────────────── */}
+        <section className="bg-brand">
+          <div className="max-w-3xl mx-auto px-4 py-14 text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight">
+              Ready to reach more customers?
+            </h2>
+            <p className="text-white/80 text-base mb-8">
+              Join thousands of advertisers across Ethiopia. Start for free.
+            </p>
+            <div className="flex gap-3 justify-center flex-wrap">
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => navigate('/register')}
+              >
+                Create free account
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="text-white border-white/30 hover:bg-white/10"
+                onClick={() => navigate('/pricing')}
+              >
+                View pricing
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <Footer />
     </div>
   )
 }

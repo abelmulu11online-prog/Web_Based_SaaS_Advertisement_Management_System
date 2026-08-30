@@ -1,41 +1,41 @@
 /**
  * App-wide constants.
- * Add environment-specific values, route paths, and enums here.
  */
 
-// API
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
-
-// Pagination defaults
+// Pagination
 export const DEFAULT_PAGE_SIZE = 20
 
-// Route paths — centralise so changes propagate everywhere
+// Route paths
 export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  DASHBOARD: '/dashboard',
-  // Public advertisement routes
-  ADVERTISEMENTS: '/ads',
-  ADVERTISEMENT_DETAIL: '/ads/:id',
-  // Advertiser dashboard routes
-  DASHBOARD_ADVERTISEMENTS: '/dashboard/advertisements',
-  DASHBOARD_ADVERTISEMENT_NEW: '/dashboard/advertisements/new',
-  DASHBOARD_ADVERTISEMENT_EDIT: '/dashboard/advertisements/:id/edit',
-  // Other
-  SUBSCRIPTIONS: '/subscriptions',
-  PROFILE: '/profile',
-  ADMIN: '/admin',
+  HOME:            '/',
+  LOGIN:           '/login',
+  REGISTER:        '/register',
+  ADS:             '/ads',
+  AD_DETAIL:       (id) => `/ads/${id}`,
+  PRICING:         '/pricing',
+
+  // Dashboard
+  DASHBOARD:               '/dashboard',
+  DASHBOARD_ADS:           '/dashboard/advertisements',
+  DASHBOARD_ADS_NEW:       '/dashboard/advertisements/new',
+  DASHBOARD_ADS_EDIT:      (id) => `/dashboard/advertisements/${id}/edit`,
+  DASHBOARD_SUBSCRIPTION:  '/dashboard/subscription',
+
+  // Payment flow
+  SUBSCRIPTION_CALLBACK: '/subscription/callback',
+  SUBSCRIPTION_SUCCESS:  '/subscription/success',
 }
 
-// Ad categories — will be driven by the API in a later phase
+// Ad categories (static fallback — real data comes from API)
 export const AD_CATEGORIES = [
-  'Products',
-  'Services',
-  'Skills',
-  'Jobs',
-  'Real Estate',
-  'Vehicles',
-  'Events',
-  'Other',
+  'Products', 'Services', 'Skills', 'Jobs',
+  'Real Estate', 'Vehicles', 'Electronics', 'Events', 'Other',
+]
+
+// Price types
+export const PRICE_TYPES = [
+  { value: 'FIXED',             label: 'Fixed price' },
+  { value: 'NEGOTIABLE',        label: 'Negotiable' },
+  { value: 'FREE',              label: 'Free' },
+  { value: 'CONTACT_FOR_PRICE', label: 'Contact for price' },
 ]

@@ -1,17 +1,7 @@
-/**
- * PaymentCallbackPage.jsx — Landing page after Chapa redirects the user back.
- *
- * Chapa appends ?tx_ref=<ref> to the return_url. This page:
- *  1. Reads tx_ref from the URL query string
- *  2. Polls GET /payment-status/:tx_ref every 3 seconds
- *  3. Redirects to /subscription/success once payment is confirmed
- *  4. Offers a cancel button that marks the payment FAILED and returns to /pricing
- *
- * Route: /subscription/callback
- */
 import { useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { Loader2, XCircle, AlertCircle, HelpCircle } from 'lucide-react'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { usePaymentStatus, useCancelCheckout } from '../features/subscriptions/hooks/useSubscriptions.js'
@@ -20,123 +10,92 @@ export default function PaymentCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-
-  // Chapa appends tx_ref (sometimes trx_ref in older API versions)
   const txRef = searchParams.get('tx_ref') || searchParams.get('trx_ref')
 
   const { data, isLoading, isError } = usePaymentStatus(txRef)
   const cancel = useCancelCheckout()
 
-  // Navigate to success page once payment is confirmed
   useEffect(() => {
     if (data?.status === 'success') {
-      // Invalidate subscription cache so the success page shows fresh data
       queryClient.invalidateQueries({ queryKey: ['subscriptions', 'my'] })
       navigate('/subscription/success', { replace: true })
     }
   }, [data?.status, navigate, queryClient])
 
-  const handleCancel = async () => {
+  async function handleCancel() {
     if (txRef) {
-      try {
-        await cancel.mutateAsync(txRef)
-      } catch {
-        // Non-critical — navigate anyway
-      }
+      try { await cancel.mutateAsync(txRef) } catch { /* non-critical */ }
     }
     navigate('/pricing', { replace: true })
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-canvas flex flex-col">
       <Navbar />
-      <main style={{ maxWidth: '480px', margin: '0 auto', padding: '80px 20px', textAlign: 'center' }}>
+      <main className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md text-center">
 
-        {/* No tx_ref — something went wrong */}
-        {!txRef && (
-          <div>
-            <div style={{ fontSize: '56px', marginBottom: '16px' }}>❓</div>
-            <h2 style={{ color: 'var(--text-h)', margin: '0 0 12px' }}>Missing payment reference</h2>
-            <p style={{ color: 'var(--text)', marginBottom: '24px' }}>
-              We couldn't find your payment reference. Please check your subscription status.
-            </p>
-            <Button variant="primary" onClick={() => navigate('/dashboard/subscription')}>
-              View Subscription
-            </Button>
-          </div>
-        )}
-
-        {/* Processing / polling */}
-        {txRef && (data?.status === 'pending' || isLoading) && (
-          <div>
-            <div
-              style={{
-                fontSize: '56px',
-                marginBottom: '16px',
-                animation: 'spin 1.5s linear infinite',
-                display: 'inline-block',
-              }}
-            >
-              ⏳
+          {/* No tx_ref */}
+          {!txRef && (
+            <div className="flex flex-col items-center gap-4">
+              <HelpCircle size={48} className="text-ink-3" />
+              <h2 className="text-xl font-bold text-ink">Missing payment reference</h2>
+              <p className="text-sm text-ink-2">We couldn't find your payment reference. Check your subscription status below.</p>
+              <Button variant="primary" onClick={() => navigate('/dashboard/subscription')}>View subscription</Button>
             </div>
-            <h2 style={{ color: 'var(--text-h)', margin: '0 0 12px' }}>Processing your payment…</h2>
-            <p style={{ color: 'var(--text)', marginBottom: '8px' }}>
-              We're confirming your payment with Chapa. This usually takes a few seconds.
-            </p>
-            <p style={{ color: 'var(--text)', fontSize: '13px', marginBottom: '24px' }}>
-              Reference:{' '}
-              <code style={{ background: 'var(--code-bg)', padding: '2px 6px', borderRadius: '4px' }}>
-                {txRef}
-              </code>
-            </p>
-            <Button
-              variant="secondary"
-              loading={cancel.isPending}
-              onClick={handleCancel}
-            >
-              Cancel &amp; go back
-            </Button>
-          </div>
-        )}
+          )}
 
-        {/* Failed */}
-        {txRef && data?.status === 'failed' && (
-          <div>
-            <div style={{ fontSize: '56px', marginBottom: '16px' }}>❌</div>
-            <h2 style={{ color: '#dc2626', margin: '0 0 12px' }}>Payment failed</h2>
-            <p style={{ color: 'var(--text)', marginBottom: '24px' }}>
-              Your payment could not be processed. You have not been charged.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Button variant="primary" onClick={() => navigate('/pricing')}>Try Again</Button>
-              <Button variant="secondary" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
-            </div>
-          </div>
-        )}
-
-        {/* Error fetching status */}
-        {txRef && isError && !isLoading && (
-          <div>
-            <div style={{ fontSize: '56px', marginBottom: '16px' }}>⚠️</div>
-            <h2 style={{ color: 'var(--text-h)', margin: '0 0 12px' }}>Could not verify payment</h2>
-            <p style={{ color: 'var(--text)', marginBottom: '24px' }}>
-              We couldn't check your payment status. Your subscription page will show the latest status.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Button variant="primary" onClick={() => navigate('/dashboard/subscription')}>
-                Check Subscription
-              </Button>
-              <Button variant="secondary" onClick={() => navigate('/pricing')}>
-                Back to Pricing
+          {/* Processing */}
+          {txRef && (data?.status === 'pending' || isLoading) && (
+            <div className="flex flex-col items-center gap-5">
+              <div className="w-16 h-16 rounded-full bg-brand-light flex items-center justify-center">
+                <Loader2 size={28} className="text-brand animate-spin-slow" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-ink mb-2">Processing your payment…</h2>
+                <p className="text-sm text-ink-2 mb-1">Confirming with Chapa. This usually takes a few seconds.</p>
+                <p className="text-xs text-ink-3">
+                  Reference: <code className="bg-surface-2 px-1.5 py-0.5 rounded text-[11px]">{txRef}</code>
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" loading={cancel.isPending} onClick={handleCancel}>
+                Cancel and go back
               </Button>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Failed */}
+          {txRef && data?.status === 'failed' && (
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-danger-bg flex items-center justify-center">
+                <XCircle size={28} className="text-danger" />
+              </div>
+              <h2 className="text-xl font-bold text-ink">Payment failed</h2>
+              <p className="text-sm text-ink-2">Your payment could not be processed. You have not been charged.</p>
+              <div className="flex gap-2">
+                <Button variant="primary" onClick={() => navigate('/pricing')}>Try again</Button>
+                <Button variant="secondary" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+              </div>
+            </div>
+          )}
+
+          {/* Error fetching status */}
+          {txRef && isError && !isLoading && (
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-warning-bg flex items-center justify-center">
+                <AlertCircle size={28} className="text-warning" />
+              </div>
+              <h2 className="text-xl font-bold text-ink">Could not verify payment</h2>
+              <p className="text-sm text-ink-2">We couldn't check your payment status. Your subscription page will show the latest status.</p>
+              <div className="flex gap-2">
+                <Button variant="primary" onClick={() => navigate('/dashboard/subscription')}>Check subscription</Button>
+                <Button variant="secondary" onClick={() => navigate('/pricing')}>Back to pricing</Button>
+              </div>
+            </div>
+          )}
+
+        </div>
       </main>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   )
 }

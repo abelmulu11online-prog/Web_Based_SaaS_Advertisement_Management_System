@@ -144,4 +144,17 @@ export const config = {
     secretKey:     env('CHAPA_SECRET_KEY',     '', true),
     webhookSecret: env('CHAPA_WEBHOOK_SECRET', '', true),
   },
+
+  /**
+   * Supabase Storage — image hosting (Phase 7).
+   *
+   * url:             Your Supabase project URL (https://xxxx.supabase.co).
+   * serviceRoleKey:  Service role key — has full storage access. NEVER expose to frontend.
+   * storageBucket:   The bucket name to store advertisement images in.
+   */
+  supabase: {
+    url:             env('SUPABASE_URL',              '', false),
+    serviceRoleKey:  env('SUPABASE_SERVICE_ROLE_KEY', '', false),
+    storageBucket:   env('SUPABASE_STORAGE_BUCKET',   'advertisement-images', false),
+  },
 }

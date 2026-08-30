@@ -1,6 +1,22 @@
-/**
- * Button — reusable button with variant and loading support.
- */
+import { Loader2 } from 'lucide-react'
+
+const base = 'inline-flex items-center justify-center gap-2 font-medium font-sans rounded leading-none transition-all duration-150 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1'
+
+const variants = {
+  primary:   'bg-brand text-white border border-brand hover:bg-brand-hover active:bg-brand-hover',
+  secondary: 'bg-surface text-ink border border-border-2 hover:bg-surface-2 active:bg-surface-2',
+  ghost:     'bg-transparent text-ink-2 border border-transparent hover:bg-surface-2 hover:text-ink',
+  outline:   'bg-transparent text-brand border border-brand hover:bg-brand-light',
+  danger:    'bg-danger text-white border border-danger hover:opacity-90',
+}
+
+const sizes = {
+  xs: 'h-7  px-2.5 text-xs  gap-1.5',
+  sm: 'h-8  px-3   text-sm  gap-1.5',
+  md: 'h-9  px-4   text-sm  gap-2',
+  lg: 'h-11 px-5   text-[15px] gap-2',
+}
+
 export function Button({
   children,
   onClick,
@@ -9,48 +25,36 @@ export function Button({
   size = 'md',
   disabled = false,
   loading = false,
-  style = {},
+  icon,
+  iconRight,
+  fullWidth = false,
+  className = '',
   ...rest
 }) {
-  const base = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '6px',
-    fontFamily: 'var(--sans)',
-    fontWeight: 500,
-    cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    border: 'none',
-    borderRadius: '8px',
-    transition: 'opacity 0.15s, background 0.15s',
-    opacity: disabled || loading ? 0.6 : 1,
-    whiteSpace: 'nowrap',
-  }
-
-  const sizes = {
-    sm: { padding: '6px 12px', fontSize: '13px' },
-    md: { padding: '10px 18px', fontSize: '14px' },
-    lg: { padding: '12px 24px', fontSize: '16px' },
-  }
-
-  const variants = {
-    primary: { background: 'var(--accent)', color: '#fff' },
-    secondary: { background: 'var(--code-bg)', color: 'var(--text-h)', border: '1px solid var(--border)' },
-    danger: { background: '#dc2626', color: '#fff' },
-    ghost: { background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent-border)' },
-    success: { background: '#16a34a', color: '#fff' },
-    warning: { background: '#d97706', color: '#fff' },
-  }
+  const cls = [
+    base,
+    variants[variant] ?? variants.primary,
+    sizes[size] ?? sizes.md,
+    fullWidth ? 'w-full' : '',
+    className,
+  ].join(' ')
 
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      style={{ ...base, ...sizes[size], ...variants[variant], ...style }}
+      className={cls}
       {...rest}
     >
-      {loading ? '⏳' : children}
+      {loading
+        ? <Loader2 size={14} className="animate-spin-slow" />
+        : icon && <span className="flex items-center shrink-0">{icon}</span>
+      }
+      {children}
+      {!loading && iconRight && (
+        <span className="flex items-center shrink-0">{iconRight}</span>
+      )}
     </button>
   )
 }

@@ -1,31 +1,24 @@
-/**
- * Badge — small status/label pill component.
- */
-const STATUS_STYLES = {
-  DRAFT: { background: 'var(--code-bg)', color: 'var(--text)', border: '1px solid var(--border)' },
-  PUBLISHED: { background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' },
-  PAUSED: { background: '#fef9c3', color: '#854d0e', border: '1px solid #fde68a' },
-  EXPIRED: { background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' },
-  ARCHIVED: { background: 'var(--code-bg)', color: 'var(--text)', border: '1px solid var(--border)' },
+const variants = {
+  default: 'bg-surface-2 text-ink-2 border border-border',
+  success: 'bg-success-bg text-success border border-green-200',
+  warning: 'bg-warning-bg text-warning border border-yellow-200',
+  danger:  'bg-danger-bg  text-danger  border border-red-200',
+  info:    'bg-blue-50    text-blue-700 border border-blue-200',
+  brand:   'bg-brand-light text-brand border border-brand-border',
+  dark:    'bg-ink text-white border border-ink',
 }
 
-export function Badge({ status, children }) {
-  const style = STATUS_STYLES[status] || STATUS_STYLES.DRAFT
+const sizes = {
+  xs: 'text-[11px] px-1.5 py-0.5',
+  sm: 'text-xs     px-2   py-0.5',
+  md: 'text-sm     px-2.5 py-1',
+}
+
+export function Badge({ children, variant = 'default', size = 'sm', dot = false, className = '' }) {
   return (
-    <span
-      style={{
-        ...style,
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '2px 10px',
-        borderRadius: '9999px',
-        fontSize: '12px',
-        fontWeight: 600,
-        lineHeight: '20px',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {children || status}
+    <span className={`inline-flex items-center gap-1.5 font-medium rounded leading-tight whitespace-nowrap ${variants[variant] ?? variants.default} ${sizes[size] ?? sizes.sm} ${className}`}>
+      {dot && <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />}
+      {children}
     </span>
   )
 }

@@ -1,326 +1,300 @@
-/**
- * EditAdPage — edit an existing advertisement + manage its images.
- * Route: /dashboard/advertisements/:id/edit
- */
-import { useState } from 'react'
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
-import {
-  useMyAdvertisement,
-  useUpdateAdvertisement,
-  useAddAdvertisementImage,
-  useDeleteAdvertisementImage,
-  useSetPrimaryImage,
-  usePublishAdvertisement,
-} from '../features/advertisements/hooks/useAdvertisements.js'
-import { AdvertisementForm } from '../features/advertisements/components/AdvertisementForm.jsx'
-import { Badge } from '../components/ui/Badge.jsx'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { DashboardLayout } from '../components/layout/DashboardLayout.jsx'
 import { Button } from '../components/ui/Button.jsx'
-import { FormField, Input } from '../components/ui/FormField.jsx'
-import { Navbar } from '../components/layout/Navbar.jsx'
+import { FormField, Input, Textarea, Select } from '../components/ui/FormField.jsx'
+import { Badge } from '../components/ui/Badge.jsx'
+import { Skeleton } from '../components/ui/Skeleton.jsx'
+import { ImageUploader } from '../features/advertisements/components/ImageUploader.jsx'
+import {
+  useMyAdvertisement, useCategories, useUpdateAdvertisement,
+  usePublishAdvertisement, usePauseAdvertisement, useArchiveAdvertisement,
+  useDeleteAdvertisement, useDeleteAdvertisementImage,
+} from '../features/advertisements/hooks/useAdvertisements.js'
+import * as adsService from '../services/advertisements.service.js'
 
-function ImageManager({ ad }) {
-  const [imageUrl, setImageUrl] = useState('')
-  const [altText, setAltText] = useState('')
-  const [isPrimary, setIsPrimary] = useState(false)
-  const [addError, setAddError] = useState('')
+const PRICE_TYPES = [
+  { value: 'FIXED',           label: 'Fixed price' },
+  { value: 'NEGOTIABLE',      label: 'Negotiable' },
+  { value: 'FREE',            label: 'Free' },
+  { value: 'CONTACT_FOR_PRICE', label: 'Contact for price' },
+]
 
-  const addImageMut = useAddAdvertisementImage(ad.id)
-  const deleteImageMut = useDeleteAdvertisementImage(ad.id)
-  const setPrimaryMut = useSetPrimaryImage(ad.id)
-
-  async function handleAddImage(e) {
-    e.preventDefault()
-    setAddError('')
-    if (!imageUrl.trim()) {
-      setAddError('Image URL is required')
-      return
-    }
-    try {
-      await addImageMut.mutateAsync({ image_url: imageUrl.trim(), alt_text: altText.trim() || undefined, is_primary: isPrimary })
-      setImageUrl('')
-      setAltText('')
-      setIsPrimary(false)
-    } catch (err) {
-      setAddError(err?.response?.data?.message || 'Failed to add image')
-    }
-  }
-
-  const images = ad.images || []
-
-  return (
-    <div
-      style={{
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        padding: '20px',
-      }}
-    >
-      <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600, color: 'var(--text-h)' }}>
-        Images ({images.length}/10)
-      </h3>
-
-      {/* Current images */}
-      {images.length > 0 && (
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
-          {images.map((img) => (
-            <div
-              key={img.id}
-              style={{
-                position: 'relative',
-                width: '100px',
-                border: img.is_primary ? '2px solid var(--accent)' : '2px solid var(--border)',
-                borderRadius: '10px',
-                overflow: 'hidden',
-              }}
-            >
-              <img
-                src={img.image_url}
-                alt={img.alt_text || ''}
-                style={{ width: '100%', height: '80px', objectFit: 'cover', display: 'block' }}
-                onError={(e) => { e.target.style.background = 'var(--code-bg)'; e.target.style.minHeight = '80px' }}
-              />
-              {img.is_primary && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '4px',
-                    left: '4px',
-                    background: 'var(--accent)',
-                    color: '#fff',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    borderRadius: '4px',
-                    padding: '2px 5px',
-                  }}
-                >
-                  PRIMARY
-                </div>
-              )}
-              <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
-                {!img.is_primary && (
-                  <button
-                    title="Set as primary"
-                    onClick={() => setPrimaryMut.mutate(img.id)}
-                    style={{
-                      flex: 1,
-                      padding: '4px',
-                      border: 'none',
-                      background: 'var(--code-bg)',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      color: 'var(--accent)',
-                    }}
-                  >
-                    ★
-                  </button>
-                )}
-                <button
-                  title="Delete image"
-                  onClick={() => deleteImageMut.mutate(img.id)}
-                  style={{
-                    flex: 1,
-                    padding: '4px',
-                    border: 'none',
-                    background: 'var(--code-bg)',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    color: '#dc2626',
-                  }}
-                >
-                  🗑
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add image form */}
-      {images.length < 10 && (
-        <form onSubmit={handleAddImage}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <FormField label="Image URL" error={addError}>
-              <Input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                error={addError}
-              />
-            </FormField>
-            <FormField label="Alt text (optional)">
-              <Input
-                value={altText}
-                onChange={(e) => setAltText(e.target.value)}
-                placeholder="Brief description of the image"
-              />
-            </FormField>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={isPrimary}
-                onChange={(e) => setIsPrimary(e.target.checked)}
-              />
-              Set as primary image
-            </label>
-            <Button type="submit" variant="ghost" size="sm" loading={addImageMut.isPending} style={{ alignSelf: 'flex-start' }}>
-              + Add Image
-            </Button>
-          </div>
-        </form>
-      )}
-    </div>
-  )
+const STATUS_BADGE = {
+  PUBLISHED: <Badge variant="success" dot>Published</Badge>,
+  DRAFT:     <Badge variant="default" dot>Draft</Badge>,
+  PAUSED:    <Badge variant="warning" dot>Paused</Badge>,
+  EXPIRED:   <Badge variant="danger"  dot>Expired</Badge>,
+  ARCHIVED:  <Badge variant="default" dot>Archived</Badge>,
 }
 
 export default function EditAdPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const location = useLocation()
-  const isLoggedIn = !!localStorage.getItem('accessToken')
 
-  const { data: ad, isLoading, isError } = useMyAdvertisement(id)
-  const updateMut = useUpdateAdvertisement(id)
-  const publishMut = usePublishAdvertisement()
+  const [form, setForm]               = useState(null)
+  const [errors, setErrors]           = useState({})
+  const [saved, setSaved]             = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [newFiles, setNewFiles]       = useState([])    // File[] pending upload
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
-  if (!isLoggedIn) {
-    return (
-      <div style={{ minHeight: '100vh' }}>
-        <Navbar />
-        <div style={{ textAlign: 'center', padding: '80px' }}>
-          <Link to="/login" style={{ color: 'var(--accent)' }}>Please log in</Link>
-        </div>
+  const { data: ad, isLoading }  = useMyAdvertisement(id)
+  const { data: categoriesData } = useCategories()
+  const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.categories || [])
+
+  const updateAd      = useUpdateAdvertisement(id)
+  const publishAd     = usePublishAdvertisement()
+  const pauseAd       = usePauseAdvertisement()
+  const archiveAd     = useArchiveAdvertisement()
+  const deleteAd      = useDeleteAdvertisement()
+  const deleteImg     = useDeleteAdvertisementImage(id)
+
+  useEffect(() => {
+    if (ad && !form) {
+      setForm({
+        title:         ad.title || '',
+        description:   ad.description || '',
+        category_id:   ad.category_id || '',
+        price:         ad.price?.toString() || '',
+        price_type:    ad.price_type || 'FIXED',
+        address:       ad.address || '',
+        contact_phone: ad.contact_phone || '',
+        contact_email: ad.contact_email || '',
+      })
+    }
+  }, [ad])
+
+  function setField(k, v) {
+    setForm(f => ({ ...f, [k]: v }))
+    setErrors(e => ({ ...e, [k]: '' }))
+    setSaved(false)
+  }
+
+  async function handleSave(e) {
+    e.preventDefault()
+    const e2 = {}
+    if (!form.title?.trim())       e2.title       = 'Title is required.'
+    if (!form.description?.trim()) e2.description = 'Description is required.'
+    if (Object.keys(e2).length) { setErrors(e2); return }
+
+    try {
+      // Only send fields with real values — Zod expects numbers not empty strings
+      const data = {
+        title:       form.title,
+        description: form.description,
+        price_type:  form.price_type,
+      }
+
+      if (form.category_id) data.category_id = form.category_id
+
+      const priceVal = parseFloat(form.price)
+      if (form.price && !isNaN(priceVal) &&
+          form.price_type !== 'FREE' && form.price_type !== 'CONTACT_FOR_PRICE') {
+        data.price = priceVal
+      }
+
+      if (form.address?.trim())       data.address       = form.address.trim()
+      if (form.contact_phone?.trim()) data.contact_phone = form.contact_phone.trim()
+      if (form.contact_email?.trim()) data.contact_email = form.contact_email.trim()
+
+      await updateAd.mutateAsync(data)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      const apiData = err?.response?.data
+      let msg = apiData?.message || 'Save failed.'
+      if (apiData?.error?.issues?.length) {
+        msg = apiData.error.issues.map(i => `${i.path || 'field'}: ${i.message}`).join(' · ')
+      }
+      setErrors({ submit: msg })
+    }
+  }
+
+  async function handleUploadNew() {
+    if (!newFiles.length) return
+    setUploading(true)
+    setUploadError('')
+    try {
+      await adsService.uploadAdvertisementImages(id, newFiles)
+      setNewFiles([])
+    } catch (err) {
+      setUploadError(err?.response?.data?.message || 'Upload failed. Please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleDelete() {
+    await deleteAd.mutateAsync(id)
+    navigate('/dashboard', { replace: true })
+  }
+
+  const existingImages = ad?.images || []
+  const maxImages      = 5
+  const canUpload      = newFiles.length > 0
+
+  if (!isLoading && !ad) return (
+    <DashboardLayout title="Edit Listing">
+      <div className="text-center py-16">
+        <p className="text-ink-2 mb-4">Listing not found.</p>
+        <Button variant="secondary" onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
       </div>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <div style={{ minHeight: '100vh' }}>
-        <Navbar />
-        <div style={{ textAlign: 'center', padding: '80px', color: 'var(--text)' }}>Loading…</div>
-      </div>
-    )
-  }
-
-  if (isError || !ad) {
-    return (
-      <div style={{ minHeight: '100vh' }}>
-        <Navbar />
-        <div style={{ textAlign: 'center', padding: '80px' }}>
-          <p style={{ color: '#dc2626' }}>Advertisement not found.</p>
-          <Link to="/dashboard" style={{ color: 'var(--accent)' }}>← Back to dashboard</Link>
-        </div>
-      </div>
-    )
-  }
-
-  const canEdit = ['DRAFT', 'PAUSED'].includes(ad.status)
-
-  async function handleUpdate(data) {
-    await updateMut.mutateAsync(data)
-  }
-
-  async function handlePublish() {
-    await publishMut.mutateAsync(id)
-    navigate('/dashboard')
-  }
+    </DashboardLayout>
+  )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <Navbar />
-      <main style={{ maxWidth: '780px', margin: '0 auto', padding: '32px 20px', textAlign: 'left' }}>
-        {/* Breadcrumb */}
-        <div style={{ fontSize: '14px', color: 'var(--text)', marginBottom: '24px' }}>
-          <Link to="/dashboard" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Dashboard</Link>
-          <span style={{ margin: '0 8px' }}>›</span>
-          <span>{ad.title}</span>
-        </div>
+    <DashboardLayout title="Edit Listing">
+      <div className="max-w-xl mx-auto flex flex-col gap-6">
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-              <h1 style={{ margin: 0, fontSize: '24px' }}>Edit Advertisement</h1>
-              <Badge status={ad.status}>{ad.status}</Badge>
-            </div>
-            <p style={{ margin: 0, color: 'var(--text)', fontSize: '14px' }}>
-              {canEdit ? 'Edit the details below, then publish when ready.' : `This advertisement is ${ad.status.toLowerCase()} and cannot be edited.`}
-            </p>
+        {/* Status bar */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            {isLoading
+              ? <Skeleton className="h-4 w-48" />
+              : <h2 className="text-[14px] font-semibold text-ink line-clamp-1">{ad?.title}</h2>
+            }
+            {!isLoading && STATUS_BADGE[ad?.status]}
           </div>
 
-          {['DRAFT', 'PAUSED'].includes(ad.status) && (
-            <Button
-              variant="success"
-              loading={publishMut.isPending}
-              onClick={handlePublish}
-            >
-              🚀 Publish
-            </Button>
+          {!isLoading && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {(ad?.status === 'DRAFT' || ad?.status === 'PAUSED') && (
+                <Button variant="primary" size="xs" loading={publishAd.isPending} onClick={() => publishAd.mutate(id)}>
+                  Publish
+                </Button>
+              )}
+              {ad?.status === 'PUBLISHED' && (
+                <Button variant="secondary" size="xs" loading={pauseAd.isPending} onClick={() => pauseAd.mutate(id)}>
+                  Pause
+                </Button>
+              )}
+              {ad?.status !== 'ARCHIVED' && (
+                <Button variant="ghost" size="xs" loading={archiveAd.isPending} onClick={() => archiveAd.mutate(id)}>
+                  Archive
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Success message after creation */}
-        {location.state?.created && (
-          <div
-            style={{
-              padding: '12px 16px',
-              background: '#dcfce7',
-              border: '1px solid #bbf7d0',
-              borderRadius: '8px',
-              color: '#15803d',
-              fontSize: '14px',
-              marginBottom: '20px',
-            }}
-          >
-            ✅ Advertisement created! Add images and fill in details, then publish it.
-          </div>
-        )}
+        {/* ── Photo section ────────────────────────────────────────── */}
+        <div className="bg-surface border border-border rounded-xl p-5 flex flex-col gap-4">
+          <h3 className="text-[13px] font-semibold text-ink-3 uppercase tracking-widest">Photos</h3>
 
-        {updateMut.isSuccess && (
-          <div
-            style={{
-              padding: '12px 16px',
-              background: '#dcfce7',
-              border: '1px solid #bbf7d0',
-              borderRadius: '8px',
-              color: '#15803d',
-              fontSize: '14px',
-              marginBottom: '20px',
-            }}
-          >
-            ✅ Changes saved successfully.
-          </div>
-        )}
+          {isLoading ? (
+            <div className="grid grid-cols-5 gap-2">
+              {[1,2,3].map(i => <Skeleton key={i} className="aspect-square rounded-lg" />)}
+            </div>
+          ) : (
+            <>
+              <ImageUploader
+                files={newFiles}
+                onChange={setNewFiles}
+                maxImages={maxImages}
+                existingImages={existingImages}
+                onDeleteExisting={(imgId) => deleteImg.mutate(imgId)}
+                error={uploadError}
+              />
 
-        {canEdit ? (
-          <AdvertisementForm
-            initialValues={ad}
-            onSubmit={handleUpdate}
-            isLoading={updateMut.isPending}
-            submitLabel="Save Changes"
-          />
-        ) : (
-          <div
-            style={{
-              padding: '16px',
-              background: 'var(--code-bg)',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              color: 'var(--text)',
-              fontSize: '14px',
-              marginBottom: '20px',
-            }}
-          >
-            This advertisement is <strong>{ad.status}</strong>. Pause it first to make edits.
-          </div>
-        )}
-
-        {/* Image manager — always shown */}
-        <div style={{ marginTop: '24px' }}>
-          <ImageManager ad={ad} />
+              {canUpload && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={uploading}
+                  onClick={handleUploadNew}
+                >
+                  Upload {newFiles.length} photo{newFiles.length !== 1 ? 's' : ''}
+                </Button>
+              )}
+            </>
+          )}
         </div>
-      </main>
-    </div>
+
+        {/* ── Details form ─────────────────────────────────────────── */}
+        {isLoading || !form ? (
+          <div className="flex flex-col gap-4">
+            {[80, 120, 200, 80].map((h, i) => (
+              <Skeleton key={i} className="rounded-lg" style={{ height: h }} />
+            ))}
+          </div>
+        ) : (
+          <form onSubmit={handleSave} className="flex flex-col gap-4" noValidate>
+            <FormField label="Title" required error={errors.title}>
+              <Input value={form.title} onChange={e => setField('title', e.target.value)} error={errors.title} />
+            </FormField>
+
+            <FormField label="Description" required error={errors.description}>
+              <Textarea value={form.description} onChange={e => setField('description', e.target.value)} rows={5} error={errors.description} />
+            </FormField>
+
+            <FormField label="Category">
+              <Select value={form.category_id} onChange={e => setField('category_id', e.target.value)}>
+                <option value="">No category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </Select>
+            </FormField>
+
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Price type">
+                <Select value={form.price_type} onChange={e => setField('price_type', e.target.value)}>
+                  {PRICE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </Select>
+              </FormField>
+              {form.price_type !== 'FREE' && form.price_type !== 'CONTACT_FOR_PRICE' && (
+                <FormField label="Price (ETB)">
+                  <Input type="number" min="0" value={form.price} onChange={e => setField('price', e.target.value)} />
+                </FormField>
+              )}
+            </div>
+
+            <FormField label="Address / Area">
+              <Input value={form.address} onChange={e => setField('address', e.target.value)} placeholder="e.g. Bole, Addis Ababa" />
+            </FormField>
+
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Phone">
+                <Input type="tel" value={form.contact_phone} onChange={e => setField('contact_phone', e.target.value)} />
+              </FormField>
+              <FormField label="Email">
+                <Input type="email" value={form.contact_email} onChange={e => setField('contact_email', e.target.value)} />
+              </FormField>
+            </div>
+
+            {errors.submit && <p className="text-[13px] text-danger">{errors.submit}</p>}
+
+            <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:text-danger hover:bg-red-50"
+                onClick={() => setConfirmDelete(true)}
+              >
+                Delete listing
+              </Button>
+              <Button type="submit" variant="primary" size="sm" loading={updateAd.isPending}>
+                {saved ? '✓ Saved' : 'Save changes'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* Delete confirm dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-surface rounded-xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="text-base font-semibold text-ink mb-2">Delete this listing?</h3>
+            <p className="text-[13px] text-ink-2 mb-5">This action cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>Cancel</Button>
+              <Button variant="danger" size="sm" loading={deleteAd.isPending} onClick={handleDelete}>Delete</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </DashboardLayout>
   )
 }

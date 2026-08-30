@@ -1,9 +1,6 @@
-/**
- * LoginPage.jsx — Sign in with email + password.
- * Route: /login
- */
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { FormField, Input } from '../components/ui/FormField.jsx'
@@ -12,99 +9,113 @@ import { login } from '../features/auth/services/authService.js'
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  // Redirect back to where the user came from (e.g. /pricing) after login
   const from = location.state?.from || '/dashboard'
 
-  const [form, setForm]     = useState({ identifier: '', password: '' })
-  const [error, setError]   = useState('')
+  const [form, setForm] = useState({ identifier: '', password: '' })
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPass, setShowPass] = useState(false)
 
-  function handleChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  function set(key, val) {
+    setForm(f => ({ ...f, [key]: val }))
     setError('')
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.identifier || !form.password) {
-      setError('Email and password are required.')
-      return
-    }
+    if (!form.identifier || !form.password) { setError('Email and password are required.'); return }
     setLoading(true)
-    setError('')
     try {
       const data = await login({ identifier: form.identifier, password: form.password })
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
       navigate(from, { replace: true })
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Login failed. Please try again.'
-      setError(msg)
+      setError(err?.response?.data?.message || 'Invalid email or password.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-canvas flex flex-col">
       <Navbar />
-      <main style={{ maxWidth: '400px', margin: '0 auto', padding: '60px 20px' }}>
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-[380px]">
 
-        <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-h)', margin: '0 0 6px' }}>
-          Welcome back
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--text)', margin: '0 0 28px' }}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-            Sign up free
-          </Link>
-        </p>
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-ink mb-1.5">Welcome back</h1>
+            <p className="text-sm text-ink-2">
+              New to GebetaMarket?{' '}
+              <Link to="/register" className="text-brand font-medium hover:underline">Create a free account</Link>
+            </p>
+          </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <FormField label="Email" required>
-            <Input
-              name="identifier"
-              type="email"
-              placeholder="you@example.com"
-              value={form.identifier}
-              onChange={handleChange}
-              autoFocus
-              autoComplete="email"
-            />
-          </FormField>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+            <FormField label="Email address" required>
+              <div className="relative">
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <Input
+                  type="email"
+                  name="identifier"
+                  placeholder="you@example.com"
+                  value={form.identifier}
+                  onChange={e => set('identifier', e.target.value)}
+                  className="pl-9"
+                  autoComplete="email"
+                  autoFocus
+                />
+              </div>
+            </FormField>
 
-          <FormField label="Password" required>
-            <Input
-              name="password"
-              type="password"
-              placeholder="Your password"
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="current-password"
-            />
-          </FormField>
+            <FormField label="Password" required>
+              <div className="relative">
+                <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
+                <Input
+                  type={showPass ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Your password"
+                  value={form.password}
+                  onChange={e => set('password', e.target.value)}
+                  className="pl-9 pr-10"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(s => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors"
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                >
+                  {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </FormField>
 
-          {error && (
-            <div style={{
-              background: '#fee2e2', border: '1px solid #fca5a5',
-              borderRadius: '8px', padding: '10px 14px',
-              fontSize: '14px', color: '#991b1b',
-            }}>
-              {error}
+            <div className="flex justify-end -mt-1">
+              <Link to="/forgot-password" className="text-[13px] text-ink-2 hover:text-brand transition-colors">
+                Forgot password?
+              </Link>
             </div>
-          )}
 
-          <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: '4px' }}>
-            Log in
-          </Button>
-        </form>
+            {error && (
+              <div className="bg-danger-bg border border-red-200 rounded px-3.5 py-2.5 text-[13px] text-danger">
+                {error}
+              </div>
+            )}
 
-        <p style={{ fontSize: '13px', color: 'var(--text)', marginTop: '24px', textAlign: 'center' }}>
-          <Link to="/pricing" style={{ color: 'var(--accent)', textDecoration: 'none' }}>
-            View pricing plans
-          </Link>
-        </p>
-      </main>
+            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth className="mt-1">
+              Log in
+            </Button>
+          </form>
+
+          <p className="text-center text-[12px] text-ink-3 mt-6">
+            By continuing you agree to our{' '}
+            <Link to="#" className="underline hover:text-ink-2">Terms</Link> and{' '}
+            <Link to="#" className="underline hover:text-ink-2">Privacy Policy</Link>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

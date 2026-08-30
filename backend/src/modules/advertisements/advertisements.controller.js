@@ -537,3 +537,14 @@ export const setPrimaryImage = asyncHandler(async (req, res) => {
   const image = await adsService.setPrimaryImage(req.params.id, req.params.imageId, req.user.id)
   sendSuccess(res, 'Primary image updated successfully', image)
 })
+
+/**
+ * POST /api/ads/:id/images/upload
+ * Upload image files (multipart/form-data) and store them in Supabase Storage.
+ * Files must be uploaded with field name "images".
+ * Returns the created image records including public URLs.
+ */
+export const uploadImages = asyncHandler(async (req, res) => {
+  const images = await adsService.uploadImages(req.params.id, req.user.id, req.files || [])
+  sendSuccess(res, 'Images uploaded successfully', images, 201)
+})

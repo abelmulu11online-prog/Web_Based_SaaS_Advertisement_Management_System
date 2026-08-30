@@ -26,6 +26,7 @@
 import { Router } from 'express'
 import { authenticate } from '../../middleware/authenticate.js'
 import { validate } from '../../middleware/validate.js'
+import { uploadImagesMiddleware } from '../../middleware/uploadImages.js'
 import {
   createAdvertisementSchema,
   updateAdvertisementSchema,
@@ -102,8 +103,23 @@ router.delete('/:id', authenticate, validate(advertisementParamSchema), adsContr
 // ── Image endpoints ──────────────────────────────────────────────────────────
 
 /**
+ * POST /api/ads/:id/images/upload
+ * Upload image files via multipart/form-data to Supabase Storage.
+ * Field name must be "images". Max 5 files, 5 MB each. JPEG/PNG/WEBP only.
+ * IMPORTANT: This route must come BEFORE /:id/images (the URL-based route)
+ * so "upload" is not treated as an imageId param.
+ */
+router.post(
+  '/:id/images/upload',
+  authenticate,
+  validate(advertisementParamSchema),
+  uploadImagesMiddleware,
+  adsController.uploadImages,
+)
+
+/**
  * POST /api/ads/:id/images
- * Add an image to an advertisement.
+ * Add an image to an advertisement (URL-based — kept for backward compatibility).
  */
 router.post('/:id/images', authenticate, validate(addImageSchema), adsController.addImage)
 

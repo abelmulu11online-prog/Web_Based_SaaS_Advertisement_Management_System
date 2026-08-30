@@ -19,11 +19,7 @@ import pool from '../../db/index.js'
 export async function findProfileByUserId(userId) {
   const result = await pool.query(
     `SELECT
-       p.id, p.user_id, p.display_name, p.slug, p.description,
-       p.category_id, p.location_id,
-       p.contact_phone, p.contact_email, p.website_url,
-       p.is_published, p.is_verified,
-       p.created_at, p.updated_at,
+       p.*,
        c.name  AS category_name,
        c.slug  AS category_slug,
        l.city  AS location_city,
@@ -100,22 +96,20 @@ export async function createProfile({
 
 /**
  * Update a profile by user_id.
- * Builds the SET clause dynamically from provided fields.
- * @param {string} userId - UUID of the owning user
- * @param {object} fields - Key-value pairs of fields to update
- * @returns {Promise<object|null>} Updated profile row or null if not found
+ * Handles all original + extended fields from migration 021.
  */
 export async function updateProfile(userId, fields) {
   const allowedFields = [
-    'display_name',
-    'slug',
-    'description',
-    'category_id',
-    'location_id',
-    'contact_phone',
-    'contact_email',
-    'website_url',
-    'is_published',
+    'display_name', 'slug', 'description', 'category_id', 'location_id',
+    'contact_phone', 'contact_email', 'website_url', 'is_published',
+    // Extended fields (migration 021)
+    'profile_type', 'headline',
+    'avatar_url', 'avatar_storage_key', 'cover_url', 'cover_storage_key',
+    'country', 'region', 'city', 'area', 'address_line',
+    'latitude', 'longitude', 'location_precision',
+    'whatsapp', 'telegram_username',
+    'phone_visibility', 'email_visibility',
+    'completion_score',
   ]
 
   const setClauses = []
@@ -130,26 +124,13 @@ export async function updateProfile(userId, fields) {
     }
   }
 
-  if (setClauses.length === 0) {
-    return null
-  }
+  if (setClauses.length === 0) return null
 
-  // Add updated_at
-  setClauses.push(`updated_at = now()`)
-
-  // Add userId as the last parameter
+  setClauses.push('updated_at = now()')
   values.push(userId)
 
   const result = await pool.query(
-    `UPDATE profiles
-     SET ${setClauses.join(', ')}
-     WHERE user_id = $${paramIndex}
-     RETURNING
-       id, user_id, display_name, slug, description,
-       category_id, location_id,
-       contact_phone, contact_email, website_url,
-       is_published, is_verified,
-       created_at, updated_at`,
+    `UPDATE profiles SET ${setClauses.join(', ')} WHERE user_id = $${paramIndex} RETURNING *`,
     values,
   )
   return result.rows[0] || null

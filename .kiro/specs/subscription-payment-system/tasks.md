@@ -285,8 +285,8 @@ Implements the revenue engine for the Ethiopian SaaS advertisement management pl
     - Test that subscriptions with `status = 'FREE'` or future `current_period_end` are NOT in the expired set
     - _Requirements: 7.1, 7.3, 7.4_
 
-- [ ] 13. Frontend — `subscriptionsService.js` and React Query hooks
-  - [ ] 13.1 Create `frontend/src/features/subscriptions/services/subscriptionsService.js`
+- [x] 13. Frontend — `subscriptionsService.js` and React Query hooks
+  - [x] 13.1 Create `frontend/src/features/subscriptions/services/subscriptionsService.js`
     - Implement `getPlans()` — GET `/api/subscriptions/plans`
     - Implement `getMySubscription()` — GET `/api/subscriptions/my` (authenticated)
     - Implement `createCheckout({ plan_id })` — POST `/api/subscriptions/checkout`, returns `{ checkout_url, tx_ref }`
@@ -295,7 +295,7 @@ Implements the revenue engine for the Ethiopian SaaS advertisement management pl
     - Use the existing Axios instance with auth header from context
     - _Requirements: 2.1, 2.4, 2.5_
 
-  - [ ] 13.2 Create `frontend/src/features/subscriptions/hooks/useSubscriptions.js`
+  - [x] 13.2 Create `frontend/src/features/subscriptions/hooks/useSubscriptions.js`
     - Export `useSubscriptionPlans()` — `useQuery` with `staleTime: 60 * 60 * 1000`
     - Export `useMySubscription()` — `useQuery` for authenticated user subscription
     - Export `usePaymentHistory(page)` — `useQuery` for paginated history
@@ -303,41 +303,41 @@ Implements the revenue engine for the Ethiopian SaaS advertisement management pl
     - Export `useCreateCheckoutSession()` — `useMutation` that calls `api.createCheckout`, on success redirects `window.location.href` to `data.checkout_url`
     - _Requirements: 2.4, 2.5, 2.6_
 
-- [ ] 14. Frontend — subscription UI components
-  - [ ] 14.1 Create `PlanCard.jsx` in `frontend/src/features/subscriptions/components/`
+- [x] 14. Frontend — subscription UI components
+  - [x] 14.1 Create `PlanCard.jsx` in `frontend/src/features/subscriptions/components/`
     - Display `display_name`, `price_etb` (formatted as "ETB X/month"), `max_active_ads`, `max_images_per_ad`
     - Show a featured badge for plans where `is_featured = true`
     - Render a "Subscribe" CTA button that calls `useCreateCheckoutSession().mutate({ planId: plan.id })`
     - Disable button and show "Current Plan" label when this plan matches the user's active plan
     - _Requirements: 2.1, 2.4_
 
-  - [ ] 14.2 Create `SubscriptionStatus.jsx` and `UsageBar.jsx` in `frontend/src/features/subscriptions/components/`
+  - [x] 14.2 Create `SubscriptionStatus.jsx` and `UsageBar.jsx` in `frontend/src/features/subscriptions/components/`
     - `SubscriptionStatus`: display plan badge (`status`, `display_name`), `current_period_end` formatted date, `days_remaining` count
     - `UsageBar`: render "X of Y ads used" progress bar using `usage.active_ads` and `plan.max_active_ads`
     - _Requirements: 2.2_
 
-  - [ ] 14.3 Create `ExpiryCountdown.jsx` in `frontend/src/features/subscriptions/components/`
+  - [x] 14.3 Create `ExpiryCountdown.jsx` in `frontend/src/features/subscriptions/components/`
     - Render a banner with "Expires in N days — Renew Now" when `days_remaining <= 3` and subscription `status === 'ACTIVE'`
     - Banner includes a link/button to navigate to `/pricing`
     - Return `null` when `days_remaining > 3` or subscription is FREE
     - _Requirements: 2.3_
 
-- [ ] 15. Frontend — pages
-  - [ ] 15.1 Create `PricingPage.jsx` at `frontend/src/pages/PricingPage.jsx`
+- [x] 15. Frontend — pages
+  - [x] 15.1 Create `PricingPage.jsx` at `frontend/src/pages/PricingPage.jsx`
     - Use `useSubscriptionPlans()` to fetch all active plans
     - Render a grid of `PlanCard` components for each plan, sorted by `sort_order`
     - Show loading skeleton while fetching; show error state on failure
     - Route: `/pricing` (public — no auth required)
     - _Requirements: 2.1_
 
-  - [ ] 15.2 Create `SubscriptionPage.jsx` at `frontend/src/pages/SubscriptionPage.jsx`
+  - [x] 15.2 Create `SubscriptionPage.jsx` at `frontend/src/pages/SubscriptionPage.jsx`
     - Use `useMySubscription()` to fetch the authenticated user's subscription
     - Render `SubscriptionStatus`, `UsageBar`, and `ExpiryCountdown` components with live data
     - Include a "Change Plan" button linking to `/pricing`
     - Route: `/dashboard/subscription` (auth required)
     - _Requirements: 2.2, 2.3_
 
-  - [ ] 15.3 Create `PaymentCallbackPage.jsx` at `frontend/src/pages/PaymentCallbackPage.jsx`
+  - [x] 15.3 Create `PaymentCallbackPage.jsx` at `frontend/src/pages/PaymentCallbackPage.jsx`
     - Extract `tx_ref` from URL query params (`useSearchParams`)
     - Use `usePaymentStatus(txRef)` which polls every 3 seconds while `status === 'pending'`
     - Render a "Processing payment…" spinner with tx_ref while pending
@@ -346,14 +346,14 @@ Implements the revenue engine for the Ethiopian SaaS advertisement management pl
     - Route: `/subscription/callback` (auth required)
     - _Requirements: 2.5, 2.6_
 
-  - [ ] 15.4 Create `SubscriptionSuccessPage.jsx` at `frontend/src/pages/SubscriptionSuccessPage.jsx`
+  - [x] 15.4 Create `SubscriptionSuccessPage.jsx` at `frontend/src/pages/SubscriptionSuccessPage.jsx`
     - Display activated plan name and `current_period_end` formatted as a readable date
     - Show a success confirmation message and a "Go to Dashboard" button
     - Use `useMySubscription()` to get the latest subscription data
     - Route: `/subscription/success` (auth required)
     - _Requirements: 2.6_
 
-  - [ ] 15.5 Register new routes in `App.jsx` (or router config)
+  - [x] 15.5 Register new routes in `App.jsx` (or router config)
     - Add routes for `/pricing` (public), `/dashboard/subscription` (protected), `/subscription/callback` (protected), `/subscription/success` (protected)
     - Add "Pricing" link in the main navigation
     - Add "Subscription" link in the authenticated dashboard navigation

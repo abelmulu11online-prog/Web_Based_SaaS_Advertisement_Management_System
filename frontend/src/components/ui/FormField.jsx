@@ -1,85 +1,44 @@
-/**
- * FormField — label + input/textarea/select wrapper with error display.
- */
-export function FormField({
-  label,
-  error,
-  required,
-  hint,
-  children,
-  style = {},
-}) {
+export function FormField({ label, error, hint, required, children, className = '' }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', ...style }}>
+    <div className={`flex flex-col gap-1.5 ${className}`}>
       {label && (
-        <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-h)' }}>
+        <label className="text-[13px] font-medium text-ink select-none">
           {label}
-          {required && <span style={{ color: '#dc2626', marginLeft: '3px' }}>*</span>}
+          {required && <span className="text-danger ml-0.5" aria-hidden>*</span>}
         </label>
       )}
       {children}
-      {hint && !error && (
-        <span style={{ fontSize: '12px', color: 'var(--text)' }}>{hint}</span>
-      )}
-      {error && (
-        <span style={{ fontSize: '12px', color: '#dc2626' }}>{error}</span>
-      )}
+      {hint && !error && <p className="text-xs text-ink-3 leading-snug">{hint}</p>}
+      {error && <p role="alert" className="text-xs text-danger leading-snug">{error}</p>}
     </div>
   )
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '9px 12px',
-  fontSize: '14px',
-  fontFamily: 'var(--sans)',
-  color: 'var(--text-h)',
-  background: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: '8px',
-  outline: 'none',
-  transition: 'border-color 0.15s',
-  boxSizing: 'border-box',
-}
+const inputBase = 'w-full font-sans text-sm text-ink bg-surface border border-border-2 rounded px-3 py-2 h-9 outline-none transition-colors duration-150 placeholder:text-ink-3 focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-50 disabled:cursor-not-allowed'
 
-export function Input({ error, style = {}, ...props }) {
+export function Input({ error, className = '', ...props }) {
   return (
     <input
-      style={{
-        ...inputStyle,
-        ...(error ? { borderColor: '#dc2626' } : {}),
-        ...style,
-      }}
+      className={`${inputBase} ${error ? 'border-danger focus:ring-danger/10 focus:border-danger' : ''} ${className}`}
       {...props}
     />
   )
 }
 
-export function Textarea({ error, style = {}, rows = 4, ...props }) {
+export function Textarea({ error, rows = 4, className = '', ...props }) {
   return (
     <textarea
       rows={rows}
-      style={{
-        ...inputStyle,
-        resize: 'vertical',
-        minHeight: '100px',
-        ...(error ? { borderColor: '#dc2626' } : {}),
-        ...style,
-      }}
+      className={`${inputBase} h-auto min-h-[90px] resize-y py-2 ${error ? 'border-danger focus:ring-danger/10 focus:border-danger' : ''} ${className}`}
       {...props}
     />
   )
 }
 
-export function Select({ error, style = {}, children, ...props }) {
+export function Select({ error, children, className = '', ...props }) {
   return (
     <select
-      style={{
-        ...inputStyle,
-        cursor: 'pointer',
-        ...(error ? { borderColor: '#dc2626' } : {}),
-        ...style,
-      }}
+      className={`${inputBase} cursor-pointer ${error ? 'border-danger' : ''} ${className}`}
       {...props}
     >
       {children}

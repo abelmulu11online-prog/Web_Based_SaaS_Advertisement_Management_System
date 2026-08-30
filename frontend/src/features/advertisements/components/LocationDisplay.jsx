@@ -1,56 +1,25 @@
-/**
- * LocationDisplay — shows stored location data cleanly.
- *
- * Phase 5: displays address text and coordinates.
- * Phase 7: this component will be connected to the full interactive map system.
- * The interface is designed to accept the same props that the Phase 7 map will use.
- */
-export function LocationDisplay({ latitude, longitude, address }) {
-  const hasCoords = latitude !== null && latitude !== undefined
-    && longitude !== null && longitude !== undefined
+import { MapPin } from 'lucide-react'
 
+export function LocationDisplay({ latitude, longitude, address }) {
+  const hasCoords = latitude != null && longitude != null
   if (!address && !hasCoords) return null
 
   return (
-    <div
-      style={{
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        background: 'var(--code-bg)',
-      }}
-    >
-      {/* Map placeholder — Phase 7 will render an interactive map here */}
+    <div className="border border-border rounded-xl overflow-hidden bg-surface">
+      {/* Map placeholder */}
       {hasCoords && (
-        <div
-          style={{
-            height: '180px',
-            background: 'var(--code-bg)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottom: '1px solid var(--border)',
-            gap: '8px',
-          }}
-        >
-          <span style={{ fontSize: '32px' }}>🗺️</span>
-          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text)' }}>
-            Map will be available in a future update
-          </p>
-          <code style={{ fontSize: '12px' }}>
+        <div className="h-36 bg-surface-2 border-b border-border flex flex-col items-center justify-center gap-2">
+          <MapPin size={24} className="text-ink-3" />
+          <p className="text-[12px] text-ink-3">Map coming soon</p>
+          <code className="text-[11px] bg-surface px-2 py-0.5 rounded border border-border text-ink-2">
             {Number(latitude).toFixed(6)}, {Number(longitude).toFixed(6)}
           </code>
         </div>
       )}
-
-      {/* Address */}
       {address && (
-        <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-          <span style={{ fontSize: '18px', flexShrink: 0 }}>📍</span>
-          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-h)', lineHeight: 1.5 }}>
-            {address}
-          </p>
+        <div className="flex items-start gap-2.5 px-4 py-3">
+          <MapPin size={14} className="text-brand mt-0.5 shrink-0" />
+          <p className="text-[13.5px] text-ink leading-snug">{address}</p>
         </div>
       )}
     </div>

@@ -93,12 +93,16 @@ export async function findByUserId(userId) {
        us.created_at,
        us.updated_at,
        -- Plan fields — prefixed so they don't collide with subscription fields
-       sp.id            AS plan_id,
-       sp.name          AS plan_name,
-       sp.display_name  AS plan_display_name,
+       sp.id                   AS plan_id,
+       sp.name                 AS plan_name,
+       sp.display_name         AS plan_display_name,
        sp.price_etb,
        sp.max_active_ads,
        sp.max_images_per_ad,
+       sp.max_products,
+       sp.max_profile_services,
+       sp.max_portfolio_items,
+       sp.max_posts,
        sp.is_featured
      FROM user_subscriptions us
      JOIN subscription_plans sp ON us.plan_id = sp.id

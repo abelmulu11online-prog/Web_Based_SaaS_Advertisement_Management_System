@@ -1,79 +1,61 @@
-/**
- * ImageGallery — advertisement image gallery with primary/thumbnail navigation.
- */
 import { useState } from 'react'
+import { ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react'
 
-export function ImageGallery({ images }) {
-  const primary = images?.find((img) => img.is_primary) || images?.[0]
-  const [selected, setSelected] = useState(primary || null)
+export function ImageGallery({ images = [] }) {
+  const sorted = [...images].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
+  const [idx, setIdx] = useState(0)
+  const current = sorted[idx]
 
-  if (!images || images.length === 0) {
+  if (!sorted.length) {
     return (
-      <div
-        style={{
-          width: '100%',
-          height: '320px',
-          background: 'var(--code-bg)',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid var(--border)',
-        }}
-      >
-        <span style={{ fontSize: '48px', opacity: 0.4 }}>📷</span>
+      <div className="w-full rounded-xl bg-surface-2 border border-border flex items-center justify-center" style={{ aspectRatio: '4/3' }}>
+        <ImageIcon size={40} className="text-border-2" />
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div className="flex flex-col gap-2.5">
       {/* Main image */}
-      <div
-        style={{
-          width: '100%',
-          height: '360px',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          background: 'var(--code-bg)',
-          border: '1px solid var(--border)',
-        }}
-      >
-        {selected && (
-          <img
-            src={selected.image_url}
-            alt={selected.alt_text || 'Advertisement image'}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+      <div className="relative rounded-xl overflow-hidden bg-surface-2" style={{ aspectRatio: '4/3' }}>
+        <img
+          src={current.image_url}
+          alt={current.alt_text || 'Listing image'}
+          className="w-full h-full object-cover"
+        />
+        {sorted.length > 1 && (
+          <>
+            <button
+              onClick={() => setIdx(i => Math.max(0, i - 1))}
+              disabled={idx === 0}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white disabled:opacity-30 transition-all"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={() => setIdx(i => Math.min(sorted.length - 1, i + 1))}
+              disabled={idx === sorted.length - 1}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white disabled:opacity-30 transition-all"
+            >
+              <ChevronRight size={16} />
+            </button>
+            <span className="absolute bottom-2.5 right-2.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+              {idx + 1}/{sorted.length}
+            </span>
+          </>
         )}
       </div>
 
-      {/* Thumbnails (only shown when > 1 image) */}
-      {images.length > 1 && (
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-          {images.map((img) => (
+      {/* Thumbnails */}
+      {sorted.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {sorted.map((img, i) => (
             <button
               key={img.id}
-              onClick={() => setSelected(img)}
-              style={{
-                flexShrink: 0,
-                width: '72px',
-                height: '72px',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                border: selected?.id === img.id
-                  ? '2px solid var(--accent)'
-                  : '2px solid var(--border)',
-                padding: 0,
-                cursor: 'pointer',
-                background: 'var(--code-bg)',
-              }}
+              onClick={() => setIdx(i)}
+              className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${i === idx ? 'border-brand' : 'border-transparent opacity-60 hover:opacity-100'}`}
             >
-              <img
-                src={img.image_url}
-                alt={img.alt_text || ''}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <img src={img.image_url} alt="" className="w-full h-full object-cover" />
             </button>
           ))}
         </div>

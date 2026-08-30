@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
 // Use import.meta.dirname (Vite 8+ / Node 22+) with a fallback for older Node
@@ -7,7 +8,7 @@ const dir = import.meta.dirname ?? new URL('.', import.meta.url).pathname
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
 
   // Path aliases — import from '@/' instead of '../../'
   resolve: {

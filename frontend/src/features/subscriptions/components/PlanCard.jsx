@@ -1,127 +1,90 @@
-/**
- * PlanCard.jsx — Single plan tile for the pricing page.
- */
+import { Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useCreateCheckoutSession } from '../hooks/useSubscriptions.js'
 import { Button } from '../../../components/ui/Button.jsx'
+import { Badge } from '../../../components/ui/Badge.jsx'
+import { useCreateCheckoutSession } from '../hooks/useSubscriptions.js'
 
-const FEATURE_BADGE_STYLE = {
-  display: 'inline-block',
-  padding: '2px 10px',
-  borderRadius: '9999px',
-  background: '#fbbf24',
-  color: '#1a1a1a',
-  fontSize: '11px',
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-  marginLeft: '8px',
-  verticalAlign: 'middle',
+const FEATURES = {
+  FREE:     ['1 active listing', '3 images per ad', 'Basic visibility'],
+  BASIC:    ['5 active listings', '5 images per ad', 'Standard visibility', 'Analytics'],
+  PRO:      ['20 active listings', '10 images per ad', 'Featured badge', 'Priority support', 'Promoted in search'],
+  BUSINESS: ['100 active listings', '10 images per ad', 'Featured badge', 'Dedicated support', 'Top placement', 'Bulk management'],
 }
 
 export function PlanCard({ plan, currentPlanName }) {
   const navigate = useNavigate()
   const checkout = useCreateCheckoutSession()
-  const isCurrent = plan.name === currentPlanName
-  const isFree    = plan.name === 'FREE'
   const isLoggedIn = !!localStorage.getItem('accessToken')
+  const isCurrent = plan.name === currentPlanName
+  const isFree = plan.name === 'FREE'
+  const isFeatured = plan.is_featured && plan.name === 'PRO'
+  const features = FEATURES[plan.name] || []
 
   function handleSubscribe() {
-    if (!isLoggedIn) {
-      // Redirect to register, then come back to pricing after auth
-      navigate('/register', { state: { from: '/pricing' } })
-      return
-    }
+    if (isFree) return
+    if (!isLoggedIn) { navigate('/register', { state: { from: '/pricing' } }); return }
     checkout.mutate({ planId: plan.id })
   }
 
   return (
-    <div
-      style={{
-        border: isCurrent ? '2px solid var(--accent)' : '1px solid var(--border)',
-        borderRadius: '16px',
-        padding: '28px 24px',
-        background: 'var(--code-bg)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        position: 'relative',
-      }}
-    >
-      {/* Featured badge */}
-      {plan.is_featured && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '-12px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#fbbf24',
-            color: '#1a1a1a',
-            fontSize: '11px',
-            fontWeight: 700,
-            padding: '3px 14px',
-            borderRadius: '9999px',
-            letterSpacing: '0.06em',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          FEATURED
+    <div className={`relative flex flex-col bg-surface rounded-xl overflow-hidden transition-all duration-200 ${
+      isFeatured ? 'border-2 border-brand shadow-lg' :
+      isCurrent  ? 'border-2 border-brand/30' :
+      'border border-border hover:border-border-2 hover:shadow-sm'
+    }`}>
+      {isFeatured && (
+        <div className="bg-brand text-white text-[11px] font-semibold tracking-widest text-center py-1.5 uppercase">
+          Most popular
         </div>
       )}
 
-      {/* Plan name */}
-      <div>
-        <h3 style={{ margin: '0 0 4px', fontSize: '20px', color: 'var(--text-h)' }}>
-          {plan.display_name}
-        </h3>
-        <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-h)' }}>
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-[15px] font-bold text-ink">{plan.display_name}</h3>
+          {isCurrent && <Badge variant="brand" size="xs">Current</Badge>}
+        </div>
+
+        <div className="mt-3 mb-5">
           {plan.price_etb === 0 ? (
-            <span>Free</span>
+            <div className="text-3xl font-bold text-ink tracking-tight">Free</div>
           ) : (
-            <>
-              <span>ETB {Number(plan.price_etb).toLocaleString()}</span>
-              <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--text)', marginLeft: '4px' }}>
-                /month
+            <div className="flex items-end gap-1">
+              <span className="text-3xl font-bold text-ink tracking-tight">
+                ETB {Number(plan.price_etb).toLocaleString()}
               </span>
-            </>
+              <span className="text-ink-3 text-sm mb-0.5">/mo</span>
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Features list */}
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <li style={{ fontSize: '14px', color: 'var(--text)' }}>
-          ✓ <strong>{plan.max_active_ads}</strong> active advertisement{plan.max_active_ads !== 1 ? 's' : ''}
-        </li>
-        <li style={{ fontSize: '14px', color: 'var(--text)' }}>
-          ✓ Up to <strong>{plan.max_images_per_ad}</strong> images per ad
-        </li>
-        {plan.is_featured && (
-          <li style={{ fontSize: '14px', color: 'var(--text)' }}>
-            ✓ <span style={FEATURE_BADGE_STYLE}>Featured</span> badge on listings
-          </li>
+        <ul className="flex flex-col gap-2.5 mb-6 flex-1">
+          {features.map(f => (
+            <li key={f} className="flex items-start gap-2 text-[13px] text-ink-2">
+              <Check size={13} className="text-brand mt-0.5 shrink-0" />
+              {f}
+            </li>
+          ))}
+        </ul>
+
+        {isCurrent ? (
+          <div className="w-full h-9 flex items-center justify-center rounded border border-border text-[13px] text-ink-3 font-medium bg-surface-2">
+            Current plan
+          </div>
+        ) : isFree ? (
+          <div className="w-full h-9 flex items-center justify-center rounded border border-border text-[13px] text-ink-3 font-medium">
+            Always free
+          </div>
+        ) : (
+          <Button
+            variant={isFeatured ? 'primary' : 'outline'}
+            fullWidth
+            loading={checkout.isPending}
+            onClick={handleSubscribe}
+          >
+            {isLoggedIn ? 'Subscribe' : 'Get started'}
+          </Button>
         )}
-      </ul>
-
-      {/* CTA button */}
-      {isCurrent ? (
-        <Button variant="secondary" disabled style={{ marginTop: 'auto' }}>
-          Current Plan
-        </Button>
-      ) : isFree ? (
-        <Button variant="secondary" disabled style={{ marginTop: 'auto' }}>
-          Free Forever
-        </Button>
-      ) : (
-        <Button
-          variant="primary"
-          loading={checkout.isPending}
-          onClick={handleSubscribe}
-          style={{ marginTop: 'auto' }}
-        >
-          {isLoggedIn ? 'Subscribe' : 'Sign up to subscribe'}
-        </Button>
-      )}
+      </div>
     </div>
   )
 }
