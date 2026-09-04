@@ -50,11 +50,32 @@ export async function reverseGeocode(lat, lng) {
  * @param {number} [limit=100]
  * @returns {Promise<Array>}
  */
+/**
+ * Find published profiles within a radius of the given point using the profiles search API.
+ * Customer coordinates are NEVER stored server-side.
+ */
 export async function findNearby(lat, lng, radiusKm, limit = 100) {
-  const response = await apiClient.get('/locations/nearby', {
+  const response = await apiClient.get('/profiles/search', {
     params: { lat, lng, radius_km: radiusKm, limit },
   })
-  return response.data.data
+  // Return profiles array for map pin compatibility
+  return (response.data.data?.profiles || [])
+    .filter(p => p.latitude != null && p.longitude != null)
+    .map(p => ({
+      id: p.id,
+      slug: p.slug,
+      display_name: p.display_name,
+      headline: p.headline,
+      avatar_url: p.avatar_url,
+      latitude: parseFloat(p.latitude),
+      longitude: parseFloat(p.longitude),
+      city: p.city,
+      country: p.country,
+      category_name: p.category_name,
+      is_verified: p.is_verified,
+      avg_rating: p.avg_rating,
+      review_count: p.review_count,
+    }))
 }
 
 /**
@@ -63,7 +84,11 @@ export async function findNearby(lat, lng, radiusKm, limit = 100) {
  *
  * @returns {Promise<Array>}
  */
-export async function getMapPins() {
-  const response = await apiClient.get('/ads/map')
+/**
+ * Fetch published profiles with coordinates for the map view.
+ * @param {object} params - optional filters: search, category_id, city, country
+ */
+export async function getProfileMapPins(params = {}) {
+  const response = await apiClient.get('/profiles/map-pins', { params })
   return response.data.data
 }

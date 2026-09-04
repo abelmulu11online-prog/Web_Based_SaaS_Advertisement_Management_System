@@ -163,7 +163,18 @@ export async function createProfile(userId, data) {
     contactPhone: data.contact_phone,
     contactEmail: data.contact_email,
     websiteUrl: data.website_url,
-    isPublished: data.is_published,
+    isPublished: data.is_published ?? false,
+    profileType: data.profile_type || 'PERSONAL',
+    headline: data.headline || null,
+    country: data.country || null,
+    region: data.region || null,
+    city: data.city || null,
+    area: data.area || null,
+    addressLine: data.address_line || null,
+    whatsapp: data.whatsapp || null,
+    telegramUsername: data.telegram_username || null,
+    phoneVisibility: data.phone_visibility || 'PUBLIC',
+    emailVisibility: data.email_visibility || 'PUBLIC',
   })
 
   logger.info({ userId, profileId: profile.id }, 'Profile created successfully')
@@ -240,6 +251,40 @@ export async function updateProfile(userId, data) {
   const updated = await profileRepo.updateProfile(userId, data)
 
   logger.info({ userId, profileId: updated.id }, 'Profile updated successfully')
+
+  // Trigger completion score refresh (non-blocking)
+  try {
+    const { default: profilesRepo } = await import('../profiles/profiles.repository.js')
+    const [socialLinks, businessHours, services, portfolio] = await Promise.all([
+      profilesRepo.findSocialLinks(updated.id),
+      profilesRepo.findBusinessHours(updated.id),
+      profilesRepo.findServicesOffered(updated.id, { page: 1, page_size: 1 }),
+      profilesRepo.findPortfolioItems(updated.id, { page: 1, page_size: 1 }),
+    ])
+    const stats = {
+      social_count: socialLinks.length,
+      hours_count: businessHours.length,
+      service_count: services.total,
+      portfolio_count: portfolio.total,
+    }
+    const checks = [
+      { done: !!updated.avatar_url,        weight: 10 },
+      { done: !!updated.cover_url,         weight: 8 },
+      { done: !!updated.headline,          weight: 10 },
+      { done: !!updated.description,       weight: 10 },
+      { done: !!(updated.city || updated.country), weight: 8 },
+      { done: !!(updated.contact_phone || updated.contact_email || updated.whatsapp), weight: 10 },
+      { done: stats.social_count > 0,      weight: 7 },
+      { done: stats.hours_count > 0,       weight: 7 },
+      { done: stats.service_count > 0,     weight: 8 },
+      { done: stats.portfolio_count > 0,   weight: 10 },
+      { done: !!updated.is_published,      weight: 10 },
+    ]
+    const score = Math.min(100, checks.reduce((s, c) => s + (c.done ? c.weight : 0), 0))
+    await profileRepo.updateProfile(userId, { completion_score: score })
+  } catch (e) {
+    // Non-fatal — completion score will update on next read
+  }
 
   return formatProfile(updated)
 }

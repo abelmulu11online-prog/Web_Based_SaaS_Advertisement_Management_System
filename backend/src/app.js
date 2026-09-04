@@ -94,7 +94,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/profile', profileRouter)
 app.use('/api/profile', dashboardProfileRouter)
 app.use('/api/profiles', publicProfilesRouter)
-app.use('/api/ads', adsRouter)
+// app.use('/api/ads', adsRouter)  // disabled — marketplace module retired
 app.use('/api/locations', locationsRouter)
 app.use('/api/analytics', analyticsRouter)
 app.use('/api/admin', adminRouter)

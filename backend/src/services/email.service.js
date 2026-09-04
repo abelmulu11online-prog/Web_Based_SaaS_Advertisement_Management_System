@@ -1,26 +1,26 @@
 /**
  * email.service.js — Email delivery service using nodemailer.
  *
- * Handles SMTP configuration, email templates, and delivery.
+ * Handles SMTP configuration, branded HTML email templates, and delivery.
  * Separated from business logic for testability and reusability.
  */
 import nodemailer from 'nodemailer'
 import { config } from '../config/index.js'
 import logger from '../utils/logger.js'
 
+const APP_NAME   = 'GebetaPro'
+const BRAND_COLOR = '#1a6b5e'   // matches --color-brand in the frontend theme
+const BRAND_HOVER = '#155a4e'
+
 // ── SMTP Transport Setup ─────────────────────────────────────────────────────
 
-/**
- * Create and configure the SMTP transporter.
- * Lazily initialized to avoid connection issues during startup.
- */
 let transporter = null
 
 function getTransporter() {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      host: config.smtp.host,
-      port: config.smtp.port,
+      host:   config.smtp.host,
+      port:   config.smtp.port,
       secure: config.smtp.secure,
       auth: {
         user: config.smtp.user,
@@ -31,312 +31,220 @@ function getTransporter() {
   return transporter
 }
 
-// ── Email Templates ───────────────────────────────────────────────────────────
+// ── Shared layout wrapper ────────────────────────────────────────────────────
 
 /**
- * Generate the HTML verification email template.
- * @param {string} appName - Application name
- * @param {string} verificationUrl - Full verification URL with token
- * @param {string} expirationHours - Token expiration in hours
- * @returns {string} HTML email content
+ * Wrap email body content in the shared GebetaPro layout.
+ * @param {string} title    — <title> tag text
+ * @param {string} body     — inner HTML (everything inside the card)
+ * @returns {string} Complete HTML document
  */
-function generateVerificationEmail(appName, verificationUrl, expirationHours) {
-  return `
-<!DOCTYPE html>
-<html>
+function layout(title, body) {
+  return `<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your Email</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #faf9f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
       line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
+      color: #1a1917;
+      padding: 40px 16px;
     }
-    .container {
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 30px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header {
+    .wrapper { max-width: 560px; margin: 0 auto; }
+    .logo {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #1a1917;
     }
-    .header h1 {
-      color: #2563eb;
-      margin: 0;
-      font-size: 24px;
+    .logo span { color: ${BRAND_COLOR}; }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e4e2dd;
+      padding: 40px 36px;
     }
-    .content {
-      margin-bottom: 30px;
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1917;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
     }
-    .button {
+    p { color: #5a5853; margin-bottom: 16px; font-size: 14px; }
+    p:last-child { margin-bottom: 0; }
+    .cta-wrap { text-align: center; margin: 28px 0; }
+    .cta {
       display: inline-block;
-      background: #2563eb;
-      color: #ffffff;
+      background: ${BRAND_COLOR};
+      color: #ffffff !important;
       text-decoration: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 10px;
+      letter-spacing: 0.01em;
+    }
+    .url-fallback {
+      background: #f5f4f1;
+      border: 1px solid #e4e2dd;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12px;
+      word-break: break-all;
+      color: ${BRAND_COLOR};
+      margin: 16px 0;
+    }
+    .notice {
+      background: #fffbeb;
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #92600a;
       margin: 20px 0;
     }
-    .button:hover {
-      background: #1d4ed8;
+    .divider {
+      border: none;
+      border-top: 1px solid #e4e2dd;
+      margin: 28px 0 20px;
     }
     .footer {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
+      text-align: center;
       font-size: 12px;
-      color: #6b7280;
-    }
-    .warning {
-      background: #fef3c7;
-      border-left: 4px solid #f59e0b;
-      padding: 12px;
-      margin: 20px 0;
-      font-size: 14px;
+      color: #9b9890;
+      margin-top: 24px;
+      line-height: 1.7;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Verify Your Email Address</h1>
+  <div class="wrapper">
+    <div class="logo">Gebeta<span>Pro</span></div>
+    <div class="card">
+      ${body}
+      <hr class="divider" />
+      <p style="font-size:12px;color:#9b9890;">
+        This is an automated email from ${APP_NAME}. Please do not reply.<br/>
+        If you need help, contact our support team.
+      </p>
     </div>
-    
-    <div class="content">
-      <p>Thank you for registering with <strong>${appName}</strong>!</p>
-      
-      <p>To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
-      
-      <div style="text-align: center;">
-        <a href="${verificationUrl}" class="button">Verify Email Address</a>
-      </div>
-      
-      <p>Or copy and paste this link into your browser:</p>
-      <p style="word-break: break-all; color: #2563eb; font-size: 14px;">${verificationUrl}</p>
-      
-      <div class="warning">
-        <strong>Important:</strong> This verification link will expire in ${expirationHours} hours.
-      </div>
-      
-      <p>If you did not create an account with ${appName}, please ignore this email or contact our support team if you have concerns.</p>
-      
-      <p>For your security, never share your verification link with anyone.</p>
-    </div>
-    
     <div class="footer">
-      <p>This is an automated email from ${appName}. Please do not reply to this message.</p>
-      <p>If you need assistance, please contact our support team.</p>
+      © ${new Date().getFullYear()} ${APP_NAME} · Ethiopia's discovery platform
     </div>
   </div>
 </body>
-</html>
-  `
+</html>`
+}
+
+// ── Templates ────────────────────────────────────────────────────────────────
+
+function verificationTemplate(verificationUrl, expirationHours) {
+  return layout('Verify your email — GebetaPro', `
+    <h2>Verify your email address</h2>
+    <p>
+      Welcome to <strong>${APP_NAME}</strong>! One quick step before you get started —
+      please confirm your email address so we know it's really you.
+    </p>
+    <div class="cta-wrap">
+      <a href="${verificationUrl}" class="cta">Verify my email</a>
+    </div>
+    <p style="font-size:13px;color:#9b9890;margin-bottom:8px;">
+      Button not working? Copy and paste this link into your browser:
+    </p>
+    <div class="url-fallback">${verificationUrl}</div>
+    <div class="notice">
+      ⏱ This link expires in <strong>${expirationHours} hours</strong>.
+      If it expires, you can request a new one from the verification page.
+    </div>
+    <p style="font-size:13px;color:#9b9890;">
+      If you didn't create a ${APP_NAME} account, you can safely ignore this email.
+    </p>
+  `)
+}
+
+function passwordResetTemplate(resetUrl, expirationHours) {
+  return layout('Reset your password — GebetaPro', `
+    <h2>Reset your password</h2>
+    <p>
+      We received a request to reset the password for your <strong>${APP_NAME}</strong> account.
+      Click the button below to choose a new password.
+    </p>
+    <div class="cta-wrap">
+      <a href="${resetUrl}" class="cta">Reset my password</a>
+    </div>
+    <p style="font-size:13px;color:#9b9890;margin-bottom:8px;">
+      Button not working? Copy and paste this link into your browser:
+    </p>
+    <div class="url-fallback">${resetUrl}</div>
+    <div class="notice">
+      ⏱ This link expires in <strong>${expirationHours} hour${expirationHours !== 1 ? 's' : ''}</strong>.
+      After that, you'll need to request a new reset link.
+    </div>
+    <p style="font-size:13px;color:#9b9890;">
+      If you didn't request a password reset, you can safely ignore this email.
+      Your password will not be changed.
+    </p>
+  `)
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Send a verification email to the user.
- * @param {object} options
- * @param {string} options.to - Recipient email address
- * @param {string} options.verificationUrl - Full verification URL with token
- * @param {string} options.expirationHours - Token expiration time in hours
- * @returns {Promise<boolean>} True if email sent successfully
  */
 export async function sendVerificationEmail({ to, verificationUrl, expirationHours }) {
   try {
-    const transporter = getTransporter()
-    
-    const appName = 'Local Discovery'
-    const html = generateVerificationEmail(appName, verificationUrl, expirationHours)
-    
-    const info = await transporter.sendMail({
-      from: config.smtp.from,
+    const html = verificationTemplate(verificationUrl, Number(expirationHours) || 24)
+    const info = await getTransporter().sendMail({
+      from:    `"${APP_NAME}" <${config.smtp.from}>`,
       to,
-      subject: `Verify Your Email - ${appName}`,
+      subject: `Verify your email — ${APP_NAME}`,
       html,
     })
-    
-    logger.info({ messageId: info.messageId, to }, 'Verification email sent successfully')
+    logger.info({ messageId: info.messageId, to }, 'Verification email sent')
     return true
   } catch (err) {
-    // Log error without exposing sensitive details
-    logger.error(
-      { 
-        to,
-        error: err.message,
-        // Never log SMTP password or verification URL
-      },
-      'Failed to send verification email',
-    )
+    logger.error({ to, error: err.message }, 'Failed to send verification email')
     return false
   }
-}
-
-/**
- * Generate the HTML password reset email template.
- * @param {string} appName - Application name
- * @param {string} resetUrl - Full reset URL with token
- * @param {string} expirationHours - Token expiration in hours
- * @returns {string} HTML email content
- */
-function generatePasswordResetEmail(appName, resetUrl, expirationHours) {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .container {
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 30px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .header h1 {
-      color: #2563eb;
-      margin: 0;
-      font-size: 24px;
-    }
-    .content {
-      margin-bottom: 30px;
-    }
-    .button {
-      display: inline-block;
-      background: #2563eb;
-      color: #ffffff;
-      text-decoration: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-weight: 600;
-      margin: 20px 0;
-    }
-    .button:hover {
-      background: #1d4ed8;
-    }
-    .footer {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      font-size: 12px;
-      color: #6b7280;
-    }
-    .warning {
-      background: #fef3c7;
-      border-left: 4px solid #f59e0b;
-      padding: 12px;
-      margin: 20px 0;
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Reset Your Password</h1>
-    </div>
-    
-    <div class="content">
-      <p>We received a request to reset your password for your <strong>${appName}</strong> account.</p>
-      
-      <p>To reset your password, click the button below:</p>
-      
-      <div style="text-align: center;">
-        <a href="${resetUrl}" class="button">Reset Password</a>
-      </div>
-      
-      <p>Or copy and paste this link into your browser:</p>
-      <p style="word-break: break-all; color: #2563eb; font-size: 14px;">${resetUrl}</p>
-      
-      <div class="warning">
-        <strong>Important:</strong> This password reset link will expire in ${expirationHours} hour(s).
-      </div>
-      
-      <p>If you did not request a password reset, please ignore this email or contact our support team if you have concerns.</p>
-      
-      <p>For your security, never share your password reset link with anyone.</p>
-    </div>
-    
-    <div class="footer">
-      <p>This is an automated email from ${appName}. Please do not reply to this message.</p>
-      <p>If you need assistance, please contact our support team.</p>
-    </div>
-  </div>
-</body>
-</html>
-  `
 }
 
 /**
  * Send a password reset email to the user.
- * @param {object} options
- * @param {string} options.to - Recipient email address
- * @param {string} options.resetUrl - Full reset URL with token
- * @param {string} options.expirationHours - Token expiration time in hours
- * @returns {Promise<boolean>} True if email sent successfully
  */
 export async function sendPasswordResetEmail({ to, resetUrl, expirationHours }) {
   try {
-    const transporter = getTransporter()
-    
-    const appName = 'Local Discovery'
-    const html = generatePasswordResetEmail(appName, resetUrl, expirationHours)
-    
-    const info = await transporter.sendMail({
-      from: config.smtp.from,
+    const html = passwordResetTemplate(resetUrl, Number(expirationHours) || 1)
+    const info = await getTransporter().sendMail({
+      from:    `"${APP_NAME}" <${config.smtp.from}>`,
       to,
-      subject: `Reset Your Password - ${appName}`,
+      subject: `Reset your password — ${APP_NAME}`,
       html,
     })
-    
-    logger.info({ messageId: info.messageId, to }, 'Password reset email sent successfully')
+    logger.info({ messageId: info.messageId, to }, 'Password reset email sent')
     return true
   } catch (err) {
-    // Log error without exposing sensitive details
-    logger.error(
-      { 
-        to,
-        error: err.message,
-        // Never log SMTP password or reset URL
-      },
-      'Failed to send password reset email',
-    )
+    logger.error({ to, error: err.message }, 'Failed to send password reset email')
     return false
   }
 }
 
 /**
- * Verify SMTP connection is working.
- * Useful for health checks and startup validation.
- * @returns {Promise<boolean>} True if connection successful
+ * Verify SMTP connection is working (used for health checks).
  */
 export async function verifySmtpConnection() {
   try {
-    const transporter = getTransporter()
-    await transporter.verify()
-    logger.info('SMTP connection verified successfully')
+    await getTransporter().verify()
+    logger.info('SMTP connection verified')
     return true
   } catch (err) {
     logger.error({ error: err.message }, 'SMTP connection verification failed')

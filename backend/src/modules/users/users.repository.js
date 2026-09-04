@@ -63,21 +63,31 @@ export async function createProfile({
   contactEmail,
   websiteUrl,
   isPublished,
+  profileType,
+  headline,
+  country,
+  region,
+  city,
+  area,
+  addressLine,
+  whatsapp,
+  telegramUsername,
+  phoneVisibility,
+  emailVisibility,
 }) {
   const result = await pool.query(
     `INSERT INTO profiles (
        user_id, display_name, slug, description,
        category_id, location_id,
        contact_phone, contact_email, website_url,
-       is_published
+       is_published,
+       profile_type, headline,
+       country, region, city, area, address_line,
+       whatsapp, telegram_username,
+       phone_visibility, email_visibility
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-     RETURNING
-       id, user_id, display_name, slug, description,
-       category_id, location_id,
-       contact_phone, contact_email, website_url,
-       is_published, is_verified,
-       created_at, updated_at`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+     RETURNING *`,
     [
       userId,
       displayName,
@@ -89,6 +99,17 @@ export async function createProfile({
       contactEmail || null,
       websiteUrl || null,
       isPublished ?? false,
+      profileType || 'PERSONAL',
+      headline || null,
+      country || null,
+      region || null,
+      city || null,
+      area || null,
+      addressLine || null,
+      whatsapp || null,
+      telegramUsername || null,
+      phoneVisibility || 'PUBLIC',
+      emailVisibility || 'PUBLIC',
     ],
   )
   return result.rows[0]

@@ -3,6 +3,7 @@
  */
 import { createError } from '../../utils/index.js'
 import logger from '../../utils/logger.js'
+import pool from '../../db/index.js'
 import * as repo from './admin.repository.js'
 import * as adsRepo from '../advertisements/advertisements.repository.js'
 import * as subRepo from '../subscriptions/subscriptions.repository.js'
@@ -209,4 +210,40 @@ export async function listPayments(query = {}) {
     status: query.status || null,
   })
   return { payments: rows, pagination: pagination(total, page, pageSize) }
+}
+
+// ── Subscription Plans ────────────────────────────────────────────────────────
+
+export async function listPlans() {
+  const { rows } = await pool.query(
+    `SELECT id, name, display_name, price_etb, max_profile_services,
+            max_portfolio_items, max_posts, max_gallery_images, max_social_links,
+            is_featured, is_active, sort_order
+     FROM subscription_plans ORDER BY sort_order`
+  )
+  return rows
+}
+
+export async function updatePlan(planId, data) {
+  const allowed = [
+    'display_name', 'price_etb', 'max_profile_services', 'max_portfolio_items',
+    'max_posts', 'max_gallery_images', 'max_social_links', 'is_featured', 'is_active'
+  ]
+  const setClauses = []
+  const values = []
+  let idx = 1
+  for (const key of allowed) {
+    if (key in data) {
+      setClauses.push(`${key} = $${idx++}`)
+      values.push(data[key])
+    }
+  }
+  if (!setClauses.length) throw new Error('No fields to update')
+  values.push(planId)
+  const { rows } = await pool.query(
+    `UPDATE subscription_plans SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`,
+    values
+  )
+  if (!rows[0]) throw Object.assign(new Error('Plan not found'), { statusCode: 404 })
+  return rows[0]
 }

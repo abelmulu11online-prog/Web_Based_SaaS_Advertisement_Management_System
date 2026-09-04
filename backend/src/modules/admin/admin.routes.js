@@ -109,4 +109,25 @@ router.patch('/categories/:catId/toggle',           ...guard, validate(uuidParam
 router.get('/subscriptions',                        ...guard, validate(listQuerySchema),           ctrl.listSubscriptions)
 router.get('/payments',                             ...guard, validate(listQuerySchema),           ctrl.listPayments)
 
+// ── Subscription Plans ────────────────────────────────────────────────────────
+const upsertPlanSchema = z.object({
+  body: z.object({
+    display_name:         z.string().min(1).max(100).optional(),
+    price_etb:            z.coerce.number().min(0).optional(),
+    max_profile_services: z.coerce.number().int().min(0).optional(),
+    max_portfolio_items:  z.coerce.number().int().min(0).optional(),
+    max_posts:            z.coerce.number().int().min(0).optional(),
+    max_gallery_images:   z.coerce.number().int().min(0).optional(),
+    max_social_links:     z.coerce.number().int().min(0).optional(),
+    is_featured:          z.boolean().optional(),
+    is_active:            z.boolean().optional(),
+  }),
+})
+
+router.get('/plans',           ...guard,                                  ctrl.listPlans)
+router.patch('/plans/:planId', ...guard, validate(z.object({
+  params: z.object({ planId: z.string().uuid() }),
+  body: upsertPlanSchema.shape.body,
+})), ctrl.updatePlan)
+
 export default router

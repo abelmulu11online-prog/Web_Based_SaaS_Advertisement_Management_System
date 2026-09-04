@@ -143,7 +143,7 @@ export async function login({ identifier, password }) {
     await client.query('COMMIT')
     logger.info({ userId: user.id }, 'User logged in successfully')
 
-    // Return tokens and safe user data
+    // Return tokens and safe user data (include email_verified_at for frontend nudge)
     return {
       user: {
         id: user.id,
@@ -151,6 +151,7 @@ export async function login({ identifier, password }) {
         phone: user.phone,
         role: user.role,
         status: user.status,
+        email_verified_at: user.email_verified_at || null,
         created_at: user.created_at,
       },
       accessToken,

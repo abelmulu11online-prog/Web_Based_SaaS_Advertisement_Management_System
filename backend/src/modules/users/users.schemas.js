@@ -8,6 +8,7 @@
  * (role, status, password, password_hash, is_verified, user_id, id, timestamps).
  */
 import { z } from 'zod'
+import { normalizeSocialUrl } from '../../utils/socialUrls.js'
 
 // ── Reusable field schemas ────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export const updateProfileSchema = z.object({
       display_name: displayNameSchema.optional(),
       slug: slugSchema.optional(),
       description: z.union([descriptionSchema, z.null()]).optional(),
-      category_id: uuidSchema.optional(),
+      category_id: z.union([uuidSchema, z.null()]).optional(),
       location_id: uuidSchema.optional(),
       contact_phone: z.union([contactPhoneSchema, z.null()]).optional(),
       contact_email: z.union([contactEmailSchema, z.null()]).optional(),
@@ -228,22 +229,33 @@ const businessHourSchema = z
 /**
  * Social link entry.
  * Platform must match the database CHECK constraint values.
+ * URLs are normalized so "instagram.com/shop" and "@username" still work.
  */
+const SOCIAL_PLATFORMS = [
+  'FACEBOOK',
+  'INSTAGRAM',
+  'TELEGRAM',
+  'WHATSAPP',
+  'TIKTOK',
+  'LINKEDIN',
+  'YOUTUBE',
+  'TWITTER',
+  'SNAPCHAT',
+  'GITHUB',
+  'WEBSITE',
+  'OTHER',
+]
+
 const socialLinkSchema = z.object({
-  platform: z.enum([
-    'FACEBOOK',
-    'INSTAGRAM',
-    'TELEGRAM',
-    'WHATSAPP',
-    'TIKTOK',
-    'LINKEDIN',
-    'YOUTUBE',
-    'TWITTER',
-    'SNAPCHAT',
-    'OTHER',
-  ]),
-  url: z.string().url('Invalid URL').max(500, 'URL must not exceed 500 characters'),
-})
+  platform: z.enum(SOCIAL_PLATFORMS),
+  url: z.string().min(1).max(500, 'URL must not exceed 500 characters'),
+}).transform((entry) => ({
+  ...entry,
+  url: normalizeSocialUrl(entry.platform, entry.url),
+})).pipe(z.object({
+  platform: z.enum(SOCIAL_PLATFORMS),
+  url: z.string().url('Invalid URL').max(500),
+}))
 
 /**
  * Business details upsert schema.

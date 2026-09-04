@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Plus, Pencil, Trash2, Wrench } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Plus, Pencil, Trash2, Wrench, ImagePlus, X as XIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
 import { Button } from '../../components/ui/Button.jsx'
 import { Badge } from '../../components/ui/Badge.jsx'
@@ -7,8 +8,9 @@ import { Skeleton } from '../../components/ui/Skeleton.jsx'
 import { FormField, Input, Textarea, Select } from '../../components/ui/FormField.jsx'
 import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuard.jsx'
 import {
-  useMyServices, useCreateService, useUpdateService, useDeleteService,
+  useMyServices, useCreateService, useUpdateService, useDeleteService, useMyProfile,
 } from '../../features/profiles/hooks/useProfile.js'
+import * as profilesApi from '../../services/profiles.service.js'
 
 const PRICING_TYPE_OPTIONS = [
   { value: 'FIXED', label: 'Fixed Price' },
@@ -86,7 +88,7 @@ function ServiceForm({ initial = emptyForm, onSave, onCancel, loading }) {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <FormField label="Service Location" hint="e.g. Gondar, Remote, On-site">
+        <FormField label="Service Location" hint="Pre-filled from your profile. Edit if this service is at a different location.">
           <Input value={form.location} onChange={set('location')} placeholder="Gondar / Remote" />
         </FormField>
         <FormField label="Availability">
@@ -121,15 +123,98 @@ function ServiceForm({ initial = emptyForm, onSave, onCancel, loading }) {
   )
 }
 
+function ServiceImageUpload({ serviceId, images = [], onUploaded, onDeleted }) {
+  const fileRef = useRef()
+  const [uploading, setUploading] = useState(false)
+
+  async function handleFiles(e) {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    setUploading(true)
+    try {
+      await profilesApi.uploadServiceImages(serviceId, files)
+      onUploaded?.()
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <p className="text-[12px] font-semibold text-ink-3 uppercase tracking-wide mb-2">Photos</p>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {images.map(img => (
+          <div key={img.id} className="relative group">
+            <img
+              src={img.image_url}
+              alt=""
+              className="w-20 h-20 object-cover rounded-lg border border-border"
+            />
+            <button
+              type="button"
+              onClick={() => onDeleted?.(img.id)}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <XIcon size={10} />
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="w-20 h-20 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center text-ink-3 hover:border-brand hover:text-brand transition-colors"
+        >
+          {uploading ? (
+            <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <ImagePlus size={18} />
+              <span className="text-[10px] mt-1">Add photo</span>
+            </>
+          )}
+        </button>
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFiles}
+      />
+    </div>
+  )
+}
+
 export default function ServicesPage() {
   const { data, isLoading, error } = useMyServices()
   const createMutation = useCreateService()
   const updateMutation = useUpdateService()
   const deleteMutation = useDeleteService()
+  const { data: myProfile } = useMyProfile()
+  const qc = useQueryClient()
+
+  // Build a default location string from the user's profile
+  const defaultLocation = [myProfile?.area, myProfile?.city].filter(Boolean).join(', ') || ''
+
+  // Default form with location pre-filled from profile
+  const defaultForm = {
+    title: '', description: '', price_from: '', currency: 'ETB',
+    pricing_type: 'CONTACT_FOR_PRICE',
+    location: defaultLocation,
+    availability: 'AVAILABLE', tags: '',
+    is_featured: false, is_published: false,
+  }
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [activeImageServiceId, setActiveImageServiceId] = useState(null)
 
   const services = data?.services || []
 
@@ -188,9 +273,10 @@ export default function ServicesPage() {
         </div>
 
         {showForm && (
-          <div className="bg-surface border border-border rounded-lg p-5">
+          <div className="bg-surface border border-border rounded-xl p-5">
             <h3 className="text-[14px] font-semibold text-ink mb-4">New service</h3>
             <ServiceForm
+              initial={defaultForm}
               onSave={handleCreate}
               onCancel={() => setShowForm(false)}
               loading={createMutation.isPending}
@@ -233,36 +319,75 @@ export default function ServicesPage() {
                     />
                   </div>
                 ) : (
-                  <div className="bg-surface border border-border rounded-lg px-4 py-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-brand-light flex items-center justify-center shrink-0">
-                      <Wrench size={16} className="text-brand" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[13.5px] font-semibold text-ink truncate">{service.title}</span>
-                        <Badge variant={AVAILABILITY_BADGE[service.availability] || 'default'} size="xs">
-                          {service.availability?.replace(/_/g, ' ')}
-                        </Badge>
-                        {!service.is_published && <Badge variant="default" size="xs">Draft</Badge>}
+                  <div className="bg-surface border border-border rounded-xl overflow-hidden">
+                    {service.primary_image && (
+                      <div className="h-32 bg-surface-2 overflow-hidden">
+                        <img
+                          src={service.primary_image.image_url}
+                          alt={service.title}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      {service.price_from && (
-                        <p className="text-[12.5px] text-ink-3 mt-0.5">
-                          {service.pricing_type === 'STARTING_FROM' ? 'From ' : ''}
-                          {service.price_from.toLocaleString()} {service.currency}
-                          {service.location && ` · ${service.location}`}
-                        </p>
-                      )}
+                    )}
+                    <div className="px-4 py-3 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-brand-light flex items-center justify-center shrink-0">
+                        <Wrench size={16} className="text-brand" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[13.5px] font-semibold text-ink truncate">{service.title}</span>
+                          <Badge variant={AVAILABILITY_BADGE[service.availability] || 'default'} size="xs">
+                            {service.availability?.replace(/_/g, ' ')}
+                          </Badge>
+                          {!service.is_published && <Badge variant="default" size="xs">Draft</Badge>}
+                        </div>
+                        {service.price_from && (
+                          <p className="text-[12.5px] text-ink-3 mt-0.5">
+                            {service.pricing_type === 'STARTING_FROM' ? 'From ' : ''}
+                            {service.price_from.toLocaleString()} {service.currency}
+                            {service.location && ` · ${service.location}`}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setActiveImageServiceId(activeImageServiceId === service.id ? null : service.id)}
+                          className="p-1.5 text-ink-3 hover:text-brand hover:bg-brand-light rounded transition-colors"
+                          title="Add photos"
+                        >
+                          <ImagePlus size={14} />
+                        </button>
+                        <button onClick={() => setEditingId(service.id)}
+                          className="p-1.5 text-ink-3 hover:text-ink hover:bg-surface-2 rounded transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleteConfirm(service.id)}
+                          className="p-1.5 text-ink-3 hover:text-danger hover:bg-red-50 rounded transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => setEditingId(service.id)}
-                        className="p-1.5 text-ink-3 hover:text-ink hover:bg-surface-2 rounded transition-colors">
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => setDeleteConfirm(service.id)}
-                        className="p-1.5 text-ink-3 hover:text-danger hover:bg-red-50 rounded transition-colors">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                  </div>
+                )}
+
+                {activeImageServiceId === service.id && (
+                  <div className="bg-surface-2 border border-brand border-t-0 rounded-b-xl px-4 pb-4">
+                    <ServiceImageUpload
+                      serviceId={service.id}
+                      images={service.primary_image ? [service.primary_image] : []}
+                      onUploaded={() => {
+                        qc.invalidateQueries({ queryKey: ['profile', 'services'] })
+                      }}
+                      onDeleted={async (imageId) => {
+                        try {
+                          await profilesApi.deleteServiceImage(service.id, imageId)
+                          qc.invalidateQueries({ queryKey: ['profile', 'services'] })
+                        } catch (e) {
+                          alert('Failed to delete image')
+                        }
+                      }}
+                    />
                   </div>
                 )}
 

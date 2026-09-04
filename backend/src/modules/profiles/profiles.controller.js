@@ -226,3 +226,59 @@ export const deleteContentImage = asyncHandler(async (req, res) => {
   await svc.deleteContentImage(req.user.id, req.params.type, req.params.id, req.params.imageId)
   sendSuccess(res, 'Image deleted', null)
 })
+
+// ── Reviews ────────────────────────────────────────────────────────────────────
+
+export const listReviews = asyncHandler(async (req, res) => {
+  const result = await svc.listProfileReviews(req.params.slug, req.query)
+  sendSuccess(res, 'Reviews retrieved', result)
+})
+
+export const submitReview = asyncHandler(async (req, res) => {
+  const review = await svc.submitReview(req.params.slug, req.user.id, req.body)
+  sendSuccess(res, 'Review submitted', review, 201)
+})
+
+export const updateReview = asyncHandler(async (req, res) => {
+  const review = await svc.updateMyReview(req.params.slug, req.params.reviewId, req.user.id, req.body)
+  sendSuccess(res, 'Review updated', review)
+})
+
+export const deleteReview = asyncHandler(async (req, res) => {
+  await svc.deleteMyReview(req.params.slug, req.params.reviewId, req.user.id)
+  sendSuccess(res, 'Review deleted', null)
+})
+
+export const getProfileMapPins = asyncHandler(async (req, res) => {
+  const pins = await svc.getProfileMapPins(req.query)
+  sendSuccess(res, 'Profile map pins retrieved', pins)
+})
+
+// ── Review replies ────────────────────────────────────────────────────────────
+
+export const addReviewReply = asyncHandler(async (req, res) => {
+  const reply = await svc.addReviewReply(req.params.slug, req.params.reviewId, req.user.id, req.body.body)
+  sendSuccess(res, 'Reply added', reply, 201)
+})
+
+export const deleteReviewReply = asyncHandler(async (req, res) => {
+  await svc.deleteReviewReply(req.params.slug, req.params.reviewId, req.user.id)
+  sendSuccess(res, 'Reply deleted', null)
+})
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export const getMyNotifications = asyncHandler(async (req, res) => {
+  const result = await svc.getMyNotifications(req.user.id)
+  sendSuccess(res, 'Notifications retrieved', result)
+})
+
+export const markNotificationRead = asyncHandler(async (req, res) => {
+  await svc.markNotificationRead(req.params.id, req.user.id)
+  sendSuccess(res, 'Marked as read', null)
+})
+
+export const markAllNotificationsRead = asyncHandler(async (req, res) => {
+  await svc.markAllNotificationsRead(req.user.id)
+  sendSuccess(res, 'All marked as read', null)
+})

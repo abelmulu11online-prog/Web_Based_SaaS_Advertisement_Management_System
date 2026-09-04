@@ -11,11 +11,6 @@ export async function getPublicProfile(slug) {
   return res.data.data
 }
 
-export async function getPublicProducts(slug, params = {}) {
-  const res = await apiClient.get(`/profiles/@${slug}/products`, { params })
-  return res.data.data
-}
-
 export async function getPublicServices(slug, params = {}) {
   const res = await apiClient.get(`/profiles/@${slug}/services`, { params })
   return res.data.data
@@ -108,40 +103,6 @@ export async function upsertBusinessDetails(data) {
   return res.data.data
 }
 
-// ── Products ───────────────────────────────────────────────────────────────────
-
-export async function getMyProducts(params = {}) {
-  const res = await apiClient.get('/profile/products', { params })
-  return res.data.data
-}
-
-export async function createProduct(data) {
-  const res = await apiClient.post('/profile/products', data)
-  return res.data.data
-}
-
-export async function updateProduct(id, data) {
-  const res = await apiClient.patch(`/profile/products/${id}`, data)
-  return res.data.data
-}
-
-export async function deleteProduct(id) {
-  const res = await apiClient.delete(`/profile/products/${id}`)
-  return res.data.data
-}
-
-export async function uploadProductImages(id, files) {
-  const fd = new FormData()
-  files.forEach(f => fd.append('images', f))
-  const res = await apiClient.post(`/profile/products/${id}/images/upload`, fd, { headers: { 'Content-Type': undefined } })
-  return res.data.data
-}
-
-export async function deleteProductImage(id, imageId) {
-  const res = await apiClient.delete(`/profile/products/${id}/images/${imageId}`)
-  return res.data.data
-}
-
 // ── Services ───────────────────────────────────────────────────────────────────
 
 export async function getMyServices(params = {}) {
@@ -168,6 +129,11 @@ export async function uploadServiceImages(id, files) {
   const fd = new FormData()
   files.forEach(f => fd.append('images', f))
   const res = await apiClient.post(`/profile/services/${id}/images/upload`, fd, { headers: { 'Content-Type': undefined } })
+  return res.data.data
+}
+
+export async function deleteServiceImage(serviceId, imageId) {
+  const res = await apiClient.delete(`/profile/services/${serviceId}/images/${imageId}`)
   return res.data.data
 }
 
@@ -248,5 +214,56 @@ export async function updateAchievement(id, data) {
 
 export async function deleteAchievement(id) {
   const res = await apiClient.delete(`/profile/achievements/${id}`)
+  return res.data.data
+}
+
+// ── Reviews ───────────────────────────────────────────────────────────────────
+
+export async function getPublicReviews(slug, params = {}) {
+  const res = await apiClient.get(`/profiles/@${slug}/reviews`, { params })
+  return res.data.data
+}
+
+export async function submitReview(slug, data) {
+  const res = await apiClient.post(`/profile/${slug}/reviews`, data)
+  return res.data.data
+}
+
+export async function updateReview(slug, reviewId, data) {
+  const res = await apiClient.patch(`/profile/${slug}/reviews/${reviewId}`, data)
+  return res.data.data
+}
+
+export async function deleteReview(slug, reviewId) {
+  const res = await apiClient.delete(`/profile/${slug}/reviews/${reviewId}`)
+  return res.data.data
+}
+
+// ── Review replies ────────────────────────────────────────────────────────────
+
+export async function addReviewReply(slug, reviewId, body) {
+  const res = await apiClient.post(`/profile/${slug}/reviews/${reviewId}/reply`, { body })
+  return res.data.data
+}
+
+export async function deleteReviewReply(slug, reviewId) {
+  const res = await apiClient.delete(`/profile/${slug}/reviews/${reviewId}/reply`)
+  return res.data.data
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export async function getNotifications() {
+  const res = await apiClient.get('/profile/notifications')
+  return res.data.data
+}
+
+export async function markNotificationRead(id) {
+  const res = await apiClient.patch(`/profile/notifications/${id}/read`)
+  return res.data.data
+}
+
+export async function markAllNotificationsRead() {
+  const res = await apiClient.patch('/profile/notifications/read-all')
   return res.data.data
 }

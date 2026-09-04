@@ -64,7 +64,7 @@ export async function findByIdentifier(identifier, dbClient = pool) {
  */
 export async function findByIdentifierForUpdate(identifier, dbClient = pool) {
   const result = await dbClient.query(
-    'SELECT id, email, phone, password_hash, role, status, created_at, updated_at FROM users WHERE email = $1 OR phone = $1 FOR UPDATE',
+    'SELECT id, email, phone, password_hash, role, status, email_verified_at, created_at, updated_at FROM users WHERE email = $1 OR phone = $1 FOR UPDATE',
     [identifier],
   )
   return result.rows[0] || null

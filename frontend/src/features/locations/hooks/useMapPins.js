@@ -1,21 +1,22 @@
 /**
- * useMapPins.js — React Query hook for fetching advertisement map pins.
+ * useMapPins.js — React Query hook for fetching profile map pins.
  */
 import { useQuery } from '@tanstack/react-query'
-import { getMapPins } from '../services/locationsService.js'
+import { getProfileMapPins } from '../services/locationsService.js'
 
 export const mapPinsKeys = {
-  all: ['map-pins'],
+  all: ['profile-map-pins'],
+  filtered: (params) => ['profile-map-pins', params],
 }
 
 /**
- * Fetch all published advertisements with coordinates for the map view.
- * Stale time is 5 minutes — map data does not need to be real-time.
+ * Fetch all published profiles with coordinates for the map view.
+ * Stale time is 5 minutes.
  */
-export function useMapPins() {
+export function useMapPins(params = {}) {
   return useQuery({
-    queryKey: mapPinsKeys.all,
-    queryFn: getMapPins,
+    queryKey: mapPinsKeys.filtered(params),
+    queryFn: () => getProfileMapPins(params),
     staleTime: 1000 * 60 * 5,
   })
 }

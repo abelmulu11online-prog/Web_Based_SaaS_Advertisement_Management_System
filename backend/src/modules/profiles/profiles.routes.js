@@ -42,6 +42,8 @@ import {
   createAchievementSchema, updateAchievementSchema, achievementParamSchema,
   contentImageParamSchema,
   listProductsSchema,
+  reviewSlugParamSchema, reviewIdParamSchema, createReviewSchema, updateReviewSchema,
+  reviewReplySchema,
 } from './profiles.schemas.js'
 
 // Single-file upload for avatar / cover
@@ -75,6 +77,12 @@ publicProfilesRouter.get('/@:slug/services',      ctrl.getPublicServices)
 publicProfilesRouter.get('/@:slug/portfolio',     ctrl.getPublicPortfolio)
 publicProfilesRouter.get('/@:slug/posts',         ctrl.getPublicPosts)
 publicProfilesRouter.get('/@:slug/achievements',  ctrl.getPublicAchievements)
+
+// Reviews (public reads)
+publicProfilesRouter.get('/@:slug/reviews', validate(reviewSlugParamSchema), ctrl.listReviews)
+
+// Profile map pins
+publicProfilesRouter.get('/map-pins', ctrl.getProfileMapPins)
 
 // ── Private dashboard router ──────────────────────────────────────────────────
 export const dashboardProfileRouter = Router()
@@ -190,3 +198,17 @@ dashboardProfileRouter.delete(
   (req, res, next) => { req.params.type = 'achievements'; next() },
   ctrl.deleteContentImage,
 )
+
+// ── Reviews ──────────────────────────────────────────────────────────────────
+dashboardProfileRouter.post('/:slug/reviews',                    validate(createReviewSchema),   ctrl.submitReview)
+dashboardProfileRouter.patch('/:slug/reviews/:reviewId',         validate(updateReviewSchema),   ctrl.updateReview)
+dashboardProfileRouter.delete('/:slug/reviews/:reviewId',        validate(reviewIdParamSchema),  ctrl.deleteReview)
+
+// Review replies — owner only
+dashboardProfileRouter.post('/:slug/reviews/:reviewId/reply',   validate(reviewReplySchema),    ctrl.addReviewReply)
+dashboardProfileRouter.delete('/:slug/reviews/:reviewId/reply', validate(reviewIdParamSchema),  ctrl.deleteReviewReply)
+
+// Notifications
+dashboardProfileRouter.get('/notifications',            ctrl.getMyNotifications)
+dashboardProfileRouter.patch('/notifications/:id/read', ctrl.markNotificationRead)
+dashboardProfileRouter.patch('/notifications/read-all', ctrl.markAllNotificationsRead)

@@ -114,3 +114,15 @@ export const listPayments = asyncHandler(async (req, res) => {
   const result = await service.listPayments(req.query || {})
   sendSuccess(res, 'Payment records retrieved', result)
 })
+
+// ── Subscription Plans ────────────────────────────────────────────────────────
+
+export const listPlans = asyncHandler(async (_req, res) => {
+  const plans = await service.listPlans()
+  sendSuccess(res, 'Plans retrieved', plans)
+})
+
+export const updatePlan = asyncHandler(async (req, res) => {
+  const plan = await service.updatePlan(req.params.planId, req.body)
+  sendSuccess(res, 'Plan updated', plan)
+})

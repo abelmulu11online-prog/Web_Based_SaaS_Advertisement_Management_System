@@ -22,6 +22,7 @@
   --color-ink:           #1a1917;
   --color-ink-2:         #5a5853;
   --color-ink-3:         #9b9890;
+  --color-ink-4:         #c4c1b8;
 
   /* Status */
   --color-success:       #166534;
@@ -127,6 +128,49 @@ a:hover { text-decoration: underline; }
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ── Fade-up reveal ────────────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger delay helpers */
+.delay-75  { animation-delay: 75ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-225 { animation-delay: 225ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-375 { animation-delay: 375ms; }
+.delay-450 { animation-delay: 450ms; }
+
+/* ── Hero search ring ───────────────────────────────────────────────────────── */
+@keyframes ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand) 25%, transparent); }
+  50%       { box-shadow: 0 0 0 6px transparent; }
+}
+.search-ring-focus:focus-within {
+  animation: ring-pulse 2s ease infinite;
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */

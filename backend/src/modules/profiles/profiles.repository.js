@@ -93,7 +93,10 @@ export async function findProfileByUserId(userId) {
  * Search published profiles.
  * @param {object} opts
  */
-export async function searchProfiles({ search, profile_type, category_id, city, country, page, page_size }) {
+export async function searchProfiles({
+  search, profile_type, category_id, city, country,
+  latitude, longitude, radius_km, verified_only, page, page_size,
+}) {
   const params = []
   const conditions = ['p.is_published = TRUE']
 
@@ -103,42 +106,98 @@ export async function searchProfiles({ search, profile_type, category_id, city, 
   }
   if (category_id) {
     params.push(category_id)
-    conditions.push(`p.category_id = $${params.length}`)
+    const n = params.length
+    conditions.push(`(p.category_id = $${n} OR p.category_id IN (SELECT id FROM categories WHERE parent_id = $${n}))`)
   }
   if (city) {
     params.push(`%${city}%`)
-    conditions.push(`p.city ILIKE $${params.length}`)
+    conditions.push(`(p.city ILIKE $${params.length} OR p.area ILIKE $${params.length} OR p.region ILIKE $${params.length})`)
   }
   if (country) {
     params.push(`%${country}%`)
     conditions.push(`p.country ILIKE $${params.length}`)
   }
+  if (verified_only) {
+    conditions.push(`p.is_verified = TRUE`)
+  }
   if (search) {
     params.push(`%${search}%`)
     const n = params.length
-    conditions.push(`(p.display_name ILIKE $${n} OR p.headline ILIKE $${n} OR p.description ILIKE $${n})`)
+    conditions.push(`(
+      p.display_name ILIKE $${n}
+      OR p.headline ILIKE $${n}
+      OR p.description ILIKE $${n}
+      OR p.city ILIKE $${n}
+      OR p.area ILIKE $${n}
+      OR c.name ILIKE $${n}
+    )`)
   }
 
-  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+  const useNearby = latitude != null && longitude != null && radius_km != null
+  let distanceSelect = 'NULL::float AS distance_km'
+  if (useNearby) {
+    params.push(latitude, longitude, radius_km)
+    const latP = params.length - 2
+    const lngP = params.length - 1
+    const radP = params.length
+    distanceSelect = `(
+      6371 * acos(LEAST(1.0, GREATEST(-1.0,
+        cos(radians($${latP})) * cos(radians(p.latitude::float)) *
+        cos(radians(p.longitude::float) - radians($${lngP})) +
+        sin(radians($${latP})) * sin(radians(p.latitude::float))
+      )))
+    ) AS distance_km`
+    conditions.push(`p.latitude IS NOT NULL AND p.longitude IS NOT NULL`)
+    conditions.push(`(
+      6371 * acos(LEAST(1.0, GREATEST(-1.0,
+        cos(radians($${latP})) * cos(radians(p.latitude::float)) *
+        cos(radians(p.longitude::float) - radians($${lngP})) +
+        sin(radians($${latP})) * sin(radians(p.latitude::float))
+      )))
+    ) <= $${radP}`)
+  }
+
+  const where = `WHERE ${conditions.join(' AND ')}`
   const offset = (page - 1) * page_size
 
   const countResult = await pool.query(
-    `SELECT COUNT(*) AS total FROM profiles p ${where}`,
+    `SELECT COUNT(*) AS total
+     FROM profiles p
+     LEFT JOIN categories c ON p.category_id = c.id
+     ${where}`,
     params,
   )
   const total = parseInt(countResult.rows[0].total, 10)
 
   params.push(page_size, offset)
+  const orderBy = useNearby
+    ? 'distance_km ASC NULLS LAST, COALESCE(sp.is_featured, FALSE) DESC, COALESCE(rs.avg_rating, 0) DESC, p.completion_score DESC'
+    : 'COALESCE(sp.is_featured, FALSE) DESC, COALESCE(rs.avg_rating, 0) DESC, p.completion_score DESC, p.updated_at DESC'
+
   const dataResult = await pool.query(
     `SELECT
        p.id, p.display_name, p.slug, p.profile_type, p.headline,
-       p.avatar_url, p.cover_url, p.city, p.country, p.region,
+       p.avatar_url, p.cover_url, p.city, p.country, p.region, p.area,
+       p.latitude, p.longitude,
        p.is_verified, p.verification_status,
-       c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon
+       c.name AS category_name, c.slug AS category_slug, c.icon AS category_icon,
+       COALESCE(sp.is_featured, FALSE) AS is_featured,
+       COALESCE(rs.avg_rating, 0) AS avg_rating,
+       COALESCE(rs.review_count, 0) AS review_count,
+       ${distanceSelect}
      FROM profiles p
      LEFT JOIN categories c ON p.category_id = c.id
+     LEFT JOIN user_subscriptions us ON us.user_id = p.user_id AND us.status = 'ACTIVE'
+     LEFT JOIN subscription_plans sp ON sp.id = us.plan_id
+     LEFT JOIN (
+       SELECT profile_id,
+              ROUND(AVG(rating)::numeric, 1) AS avg_rating,
+              COUNT(*)::int AS review_count
+       FROM profile_reviews
+       GROUP BY profile_id
+     ) rs ON rs.profile_id = p.id
      ${where}
-     ORDER BY p.completion_score DESC, p.updated_at DESC
+     ORDER BY ${orderBy}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   )
@@ -730,4 +789,196 @@ export async function findSocialLinks(profileId) {
     [profileId],
   )
   return r.rows
+}
+
+// ── J. Reviews ────────────────────────────────────────────────────────────────
+
+export async function getReviewStats(profileId) {
+  const r = await pool.query(
+    `SELECT
+       COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS avg_rating,
+       COUNT(*)::int AS review_count
+     FROM profile_reviews
+     WHERE profile_id = $1`,
+    [profileId],
+  )
+  return {
+    avg_rating: parseFloat(r.rows[0].avg_rating) || 0,
+    review_count: r.rows[0].review_count || 0,
+  }
+}
+
+export async function listReviews(profileId, { page = 1, page_size = 20 } = {}) {
+  const offset = (page - 1) * page_size
+  const countResult = await pool.query(
+    'SELECT COUNT(*) AS total FROM profile_reviews WHERE profile_id = $1',
+    [profileId],
+  )
+  const total = parseInt(countResult.rows[0].total, 10)
+  const data = await pool.query(
+    `SELECT
+       r.id, r.rating, r.comment, r.created_at, r.updated_at,
+       r.reviewer_user_id,
+       pr.display_name AS reviewer_name,
+       pr.avatar_url AS reviewer_avatar,
+       pr.slug AS reviewer_slug,
+       -- include the reply if it exists
+       rep.id AS reply_id,
+       rep.body AS reply_body,
+       rep.created_at AS reply_created_at,
+       rep.updated_at AS reply_updated_at,
+       rep.author_id AS reply_author_id,
+       rep_author_profile.display_name AS reply_author_name,
+       rep_author_profile.avatar_url AS reply_author_avatar,
+       rep_author_profile.slug AS reply_author_slug
+     FROM profile_reviews r
+     LEFT JOIN profiles pr ON pr.user_id = r.reviewer_user_id
+     LEFT JOIN profile_review_replies rep ON rep.review_id = r.id
+     LEFT JOIN profiles rep_author_profile ON rep_author_profile.user_id = rep.author_id
+     WHERE r.profile_id = $1
+     ORDER BY r.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [profileId, page_size, offset],
+  )
+
+  // Shape the rows: nest the reply object
+  const rows = data.rows.map(row => ({
+    id: row.id,
+    rating: row.rating,
+    comment: row.comment,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    reviewer_user_id: row.reviewer_user_id,
+    reviewer_name: row.reviewer_name,
+    reviewer_avatar: row.reviewer_avatar,
+    reviewer_slug: row.reviewer_slug,
+    reply: row.reply_id ? {
+      id: row.reply_id,
+      body: row.reply_body,
+      created_at: row.reply_created_at,
+      updated_at: row.reply_updated_at,
+      author_id: row.reply_author_id,
+      author_name: row.reply_author_name,
+      author_avatar: row.reply_author_avatar,
+      author_slug: row.reply_author_slug,
+    } : null,
+  }))
+
+  return { rows, total }
+}
+
+export async function findReviewByReviewer(profileId, reviewerUserId) {
+  const r = await pool.query(
+    `SELECT id, profile_id, reviewer_user_id, rating, comment, created_at, updated_at
+     FROM profile_reviews
+     WHERE profile_id = $1 AND reviewer_user_id = $2`,
+    [profileId, reviewerUserId],
+  )
+  return r.rows[0] || null
+}
+
+export async function insertReview({ profileId, reviewerUserId, rating, comment }) {
+  const r = await pool.query(
+    `INSERT INTO profile_reviews (profile_id, reviewer_user_id, rating, comment)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, profile_id, reviewer_user_id, rating, comment, created_at, updated_at`,
+    [profileId, reviewerUserId, rating, comment || null],
+  )
+  return r.rows[0]
+}
+
+export async function updateReview(id, reviewerUserId, { rating, comment }) {
+  const r = await pool.query(
+    `UPDATE profile_reviews
+     SET rating = COALESCE($3, rating),
+         comment = COALESCE($4, comment),
+         updated_at = now()
+     WHERE id = $1 AND reviewer_user_id = $2
+     RETURNING id, profile_id, reviewer_user_id, rating, comment, created_at, updated_at`,
+    [id, reviewerUserId, rating ?? null, comment === undefined ? null : comment],
+  )
+  return r.rows[0] || null
+}
+
+export async function deleteReview(id, reviewerUserId) {
+  const r = await pool.query(
+    'DELETE FROM profile_reviews WHERE id = $1 AND reviewer_user_id = $2 RETURNING id',
+    [id, reviewerUserId],
+  )
+  return r.rows[0] || null
+}
+
+// ── K. Review Replies ─────────────────────────────────────────────────────────
+
+export async function findReplyByReviewId(reviewId) {
+  const r = await pool.query(
+    `SELECT rr.*, u.display_name AS author_name, p.avatar_url AS author_avatar, p.slug AS author_slug
+     FROM profile_review_replies rr
+     JOIN users u ON u.id = rr.author_id
+     LEFT JOIN profiles p ON p.user_id = rr.author_id
+     WHERE rr.review_id = $1`,
+    [reviewId]
+  )
+  return r.rows[0] || null
+}
+
+export async function insertReviewReply({ reviewId, authorId, body }) {
+  const r = await pool.query(
+    `INSERT INTO profile_review_replies (review_id, author_id, body)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (review_id) DO UPDATE SET body = $3, updated_at = now()
+     RETURNING *`,
+    [reviewId, authorId, body]
+  )
+  return r.rows[0]
+}
+
+export async function deleteReviewReply(reviewId, authorId) {
+  const r = await pool.query(
+    `DELETE FROM profile_review_replies WHERE review_id = $1 AND author_id = $2 RETURNING id`,
+    [reviewId, authorId]
+  )
+  return r.rowCount > 0
+}
+
+// ── L. Notifications ──────────────────────────────────────────────────────────
+
+export async function createNotification({ userId, type, title, body, link }) {
+  const r = await pool.query(
+    `INSERT INTO notifications (user_id, type, title, body, link)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [userId, type, title, body || null, link || null]
+  )
+  return r.rows[0]
+}
+
+export async function listNotifications(userId, limit = 20) {
+  const r = await pool.query(
+    `SELECT * FROM notifications WHERE user_id = $1
+     ORDER BY created_at DESC LIMIT $2`,
+    [userId, limit]
+  )
+  return r.rows
+}
+
+export async function countUnreadNotifications(userId) {
+  const r = await pool.query(
+    `SELECT COUNT(*)::int AS count FROM notifications WHERE user_id = $1 AND is_read = FALSE`,
+    [userId]
+  )
+  return r.rows[0].count
+}
+
+export async function markNotificationRead(id, userId) {
+  await pool.query(
+    `UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2`,
+    [id, userId]
+  )
+}
+
+export async function markAllNotificationsRead(userId) {
+  await pool.query(
+    `UPDATE notifications SET is_read = TRUE WHERE user_id = $1`,
+    [userId]
+  )
 }

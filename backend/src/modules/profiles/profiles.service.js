@@ -50,16 +50,16 @@ function buildPagination(total, page, pageSize) {
  */
 function computeCompletion(profile, stats = {}) {
   const checks = [
-    { key: 'avatar',       done: !!profile.avatar_url,        weight: 10, label: 'Add a profile photo' },
+    { key: 'avatar',       done: !!profile.avatar_url,        weight: 12, label: 'Add a profile photo' },
     { key: 'cover',        done: !!profile.cover_url,         weight: 8,  label: 'Add a cover image' },
-    { key: 'headline',     done: !!profile.headline,          weight: 10, label: 'Add a headline' },
-    { key: 'description',  done: !!profile.description,       weight: 10, label: 'Write a description' },
-    { key: 'location',     done: !!(profile.city || profile.country), weight: 8, label: 'Add your location' },
-    { key: 'contact',      done: !!(profile.contact_phone || profile.contact_email || profile.whatsapp), weight: 10, label: 'Add contact information' },
-    { key: 'social',       done: (stats.social_count || 0) > 0,  weight: 7, label: 'Add social links' },
-    { key: 'hours',        done: (stats.hours_count || 0) > 0,   weight: 7, label: 'Add business hours' },
-    { key: 'product',      done: (stats.product_count || 0) > 0, weight: 10, label: 'Add your first product or service' },
-    { key: 'portfolio',    done: (stats.portfolio_count || 0) > 0, weight: 10, label: 'Add a portfolio item' },
+    { key: 'headline',     done: !!profile.headline,          weight: 12, label: 'Add a headline' },
+    { key: 'description',  done: !!profile.description,       weight: 12, label: 'Write a description' },
+    { key: 'location',     done: !!(profile.city || profile.country), weight: 10, label: 'Add your location' },
+    { key: 'contact',      done: !!(profile.contact_phone || profile.contact_email || profile.whatsapp), weight: 12, label: 'Add contact information' },
+    { key: 'social',       done: (stats.social_count || 0) > 0,  weight: 8, label: 'Add social links' },
+    { key: 'hours',        done: (stats.hours_count || 0) > 0,   weight: 8, label: 'Add business hours' },
+    { key: 'service',      done: (stats.service_count || 0) > 0, weight: 8, label: 'Add your first service or work' },
+    { key: 'portfolio',    done: (stats.portfolio_count || 0) > 0, weight: 8, label: 'Add a portfolio item' },
     { key: 'published',    done: !!profile.is_published,      weight: 10, label: 'Publish your profile' },
   ]
 
@@ -102,15 +102,15 @@ export async function getPublicProfile(slug, viewerUserId = null) {
     throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
   }
 
-  const [businessHours, socialLinks, productCount, serviceCount, portfolioCount, postCount, achievementCount] =
+  const [businessHours, socialLinks, serviceCount, portfolioCount, postCount, achievementCount, reviewStats] =
     await Promise.all([
       repo.findBusinessHours(profile.id),
       repo.findSocialLinks(profile.id),
-      repo.countProducts(profile.id),
       repo.countServicesOffered(profile.id),
       repo.countPortfolioItems(profile.id),
       repo.countPosts(profile.id),
       repo.findAchievements(profile.id, { publishedOnly: true }).then(a => a.length),
+      repo.getReviewStats(profile.id),
     ])
 
   // Apply contact visibility rules
@@ -141,12 +141,14 @@ export async function getPublicProfile(slug, viewerUserId = null) {
     } : null,
     // Section counts (drives which tabs to show)
     sections: {
-      products:     productCount,
       services:     serviceCount,
       portfolio:    portfolioCount,
       posts:        postCount,
       achievements: achievementCount,
+      reviews:      reviewStats.review_count,
     },
+    avg_rating: reviewStats.avg_rating,
+    review_count: reviewStats.review_count,
     joined_at: profile.created_at,
   }
 }
@@ -185,6 +187,10 @@ export async function searchProfiles(query) {
     category_id: query.category_id || undefined,
     city: query.city || undefined,
     country: query.country || undefined,
+    verified_only: query.verified_only === 'true' || query.verified_only === true,
+    latitude: query.latitude ? parseFloat(query.latitude) : undefined,
+    longitude: query.longitude ? parseFloat(query.longitude) : undefined,
+    radius_km: query.radius_km ? parseFloat(query.radius_km) : undefined,
     page,
     page_size: pageSize,
   })
@@ -271,17 +277,17 @@ export async function getProfileCompletion(userId) {
   const profile = await repo.findProfileByUserId(userId)
   if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
 
-  const [socialLinks, businessHours, products, portfolio] = await Promise.all([
+  const [socialLinks, businessHours, services, portfolio] = await Promise.all([
     repo.findSocialLinks(profile.id),
     repo.findBusinessHours(profile.id),
-    repo.findProducts(profile.id, { page: 1, page_size: 1 }),
+    repo.findServicesOffered(profile.id, { page: 1, page_size: 1 }),
     repo.findPortfolioItems(profile.id, { page: 1, page_size: 1 }),
   ])
 
   const stats = {
-    social_count:    socialLinks.length,
-    hours_count:     businessHours.length,
-    product_count:   products.total,
+    social_count:   socialLinks.length,
+    hours_count:    businessHours.length,
+    service_count:  services.total,
     portfolio_count: portfolio.total,
   }
 
@@ -290,15 +296,15 @@ export async function getProfileCompletion(userId) {
 
 async function _refreshCompletionScore(userId, profileId) {
   try {
-    const [socialLinks, businessHours, products, portfolio] = await Promise.all([
+    const [socialLinks, businessHours, services, portfolio] = await Promise.all([
       repo.findSocialLinks(profileId),
       repo.findBusinessHours(profileId),
-      repo.findProducts(profileId, { page: 1, page_size: 1 }),
+      repo.findServicesOffered(profileId, { page: 1, page_size: 1 }),
       repo.findPortfolioItems(profileId, { page: 1, page_size: 1 }),
     ])
     const profile = await repo.findProfileByUserId(userId)
     const stats = { social_count: socialLinks.length, hours_count: businessHours.length,
-                    product_count: products.total, portfolio_count: portfolio.total }
+                    service_count: services.total, portfolio_count: portfolio.total }
     const { score } = computeCompletion(profile, stats)
     await repo.updateProfile(userId, { completion_score: score })
   } catch (err) {
@@ -701,4 +707,166 @@ async function _findContentItem(contentType, itemId) {
     case 'achievements': return repo.findAchievementById(itemId)
     default: return null
   }
+}
+
+// ── Reviews ───────────────────────────────────────────────────────────────────
+
+export async function listProfileReviews(slug, query = {}) {
+  const profile = await repo.findPublicProfileBySlug(slug)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  const page = Math.max(1, parseInt(query.page) || 1)
+  const page_size = Math.min(50, parseInt(query.page_size) || 10)
+  const { rows, total } = await repo.listReviews(profile.id, { page, page_size })
+  const stats = await repo.getReviewStats(profile.id)
+
+  return {
+    reviews: rows,
+    stats,
+    pagination: buildPagination(total, page, page_size),
+  }
+}
+
+export async function submitReview(slug, reviewerUserId, data) {
+  const profile = await repo.findPublicProfileBySlug(slug)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  if (profile.user_id === reviewerUserId) {
+    throw createError('You cannot review your own profile', 403, 'SELF_REVIEW')
+  }
+
+  const existing = await repo.findReviewByReviewer(profile.id, reviewerUserId)
+  if (existing) {
+    throw createError('You have already reviewed this profile', 409, 'DUPLICATE_REVIEW')
+  }
+
+  const review = await repo.insertReview({
+    profileId: profile.id,
+    reviewerUserId,
+    rating: data.rating,
+    comment: data.comment || null,
+  })
+
+  // Notify the profile owner about the new review
+  try {
+    const stars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating)
+    await repo.createNotification({
+      userId: profile.user_id,
+      type: 'new_review',
+      title: `New ${stars} review on your profile`,
+      body: data.comment ? data.comment.slice(0, 100) : `Someone left a ${data.rating}-star rating.`,
+      link: `/p/${profile.slug}#reviews`,
+    })
+  } catch (e) { /* non-fatal */ }
+
+  return review
+}
+
+export async function updateMyReview(slug, reviewId, reviewerUserId, data) {
+  const profile = await repo.findPublicProfileBySlug(slug)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  const updated = await repo.updateReview(reviewId, reviewerUserId, data)
+  if (!updated) throw createError('Review not found', 404, 'REVIEW_NOT_FOUND')
+  return updated
+}
+
+export async function deleteMyReview(slug, reviewId, reviewerUserId) {
+  const profile = await repo.findPublicProfileBySlug(slug)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  const deleted = await repo.deleteReview(reviewId, reviewerUserId)
+  if (!deleted) throw createError('Review not found', 404, 'REVIEW_NOT_FOUND')
+}
+
+// ── Profile map pins ───────────────────────────────────────────────────────────
+
+export async function getProfileMapPins(query = {}) {
+  const { rows } = await repo.searchProfiles({
+    search: query.search || undefined,
+    category_id: query.category_id || undefined,
+    city: query.city || undefined,
+    country: query.country || undefined,
+    page: 1,
+    page_size: 500,
+  })
+
+  return rows
+    .filter(p => p.latitude != null && p.longitude != null)
+    .map(p => ({
+      id: p.id,
+      slug: p.slug,
+      display_name: p.display_name,
+      headline: p.headline,
+      avatar_url: p.avatar_url,
+      latitude: parseFloat(p.latitude),
+      longitude: parseFloat(p.longitude),
+      city: p.city,
+      country: p.country,
+      category_name: p.category_name,
+      category_icon: p.category_icon,
+      is_verified: p.is_verified,
+      is_featured: p.is_featured,
+      avg_rating: p.avg_rating,
+      review_count: p.review_count,
+    }))
+}
+
+// ── Review replies ─────────────────────────────────────────────────────────────
+
+export async function addReviewReply(slug, reviewId, authorUserId, body) {
+  // Profile must exist and be the caller's profile
+  const profile = await repo.findPublicProfileBySlug(slug)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+  if (profile.user_id !== authorUserId) {
+    throw createError('Only the profile owner can reply to reviews', 403, 'FORBIDDEN')
+  }
+
+  // Review must belong to this profile
+  const reviewCheck = await pool.query(
+    'SELECT * FROM profile_reviews WHERE id = $1 AND profile_id = $2',
+    [reviewId, profile.id]
+  )
+  if (!reviewCheck.rows[0]) throw createError('Review not found', 404, 'REVIEW_NOT_FOUND')
+
+  const reply = await repo.insertReviewReply({ reviewId, authorId: authorUserId, body })
+
+  // Notify the reviewer that the owner replied
+  try {
+    await repo.createNotification({
+      userId: reviewCheck.rows[0].reviewer_user_id,
+      type: 'review_reply',
+      title: `${profile.display_name} replied to your review`,
+      body: body.slice(0, 100),
+      link: `/p/${profile.slug}#reviews`,
+    })
+  } catch (e) { /* non-fatal */ }
+
+  return reply
+}
+
+export async function deleteReviewReply(slug, reviewId, authorUserId) {
+  const profile = await repo.findPublicProfileBySlug(slug)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+  if (profile.user_id !== authorUserId) {
+    throw createError('Only the profile owner can delete replies', 403, 'FORBIDDEN')
+  }
+  const deleted = await repo.deleteReviewReply(reviewId, authorUserId)
+  if (!deleted) throw createError('Reply not found', 404, 'REPLY_NOT_FOUND')
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export async function getMyNotifications(userId) {
+  const notifications = await repo.listNotifications(userId, 30)
+  const unread = await repo.countUnreadNotifications(userId)
+  return { notifications, unread_count: unread }
+}
+
+export async function markNotificationRead(notificationId, userId) {
+  await repo.markNotificationRead(notificationId, userId)
+}
+
+export async function markAllNotificationsRead(userId) {
+  await repo.markAllNotificationsRead(userId)
 }

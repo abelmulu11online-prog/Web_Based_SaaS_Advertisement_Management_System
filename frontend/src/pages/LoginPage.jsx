@@ -21,6 +21,15 @@ export default function LoginPage() {
     setError('')
   }
 
+  function decodeJwtRole(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+      return payload?.role ?? null
+    } catch {
+      return null
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     if (!form.identifier || !form.password) { setError('Email and password are required.'); return }
@@ -29,7 +38,11 @@ export default function LoginPage() {
       const data = await login({ identifier: form.identifier, password: form.password })
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
-      navigate(from, { replace: true })
+
+      // Redirect admins to the admin dashboard; everyone else follows the original destination
+      const role = decodeJwtRole(data.accessToken)
+      const destination = role === 'ADMIN' ? '/admin' : from
+      navigate(destination, { replace: true })
     } catch (err) {
       setError(err?.response?.data?.message || 'Invalid email or password.')
     } finally {

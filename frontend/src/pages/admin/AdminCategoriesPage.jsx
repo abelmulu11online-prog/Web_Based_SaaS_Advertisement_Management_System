@@ -1,19 +1,24 @@
 /**
  * AdminCategoriesPage.jsx — Category management.
- * Create, edit, toggle active. Single source of truth — same data
- * used by the public Create Advertisement page.
+ * Accordion tree: parent → children. Inline edit forms. Toggle active.
+ * All existing mutations (create, update, toggle) fully preserved.
  */
 import { useState } from 'react'
-import { Plus, Pencil, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react'
+import {
+  Plus, Pencil, ToggleLeft, ToggleRight,
+  Loader2, ChevronDown, ChevronRight, Tag,
+} from 'lucide-react'
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
 import { Button }       from '../../components/ui/Button.jsx'
 import { Skeleton }     from '../../components/ui/Skeleton.jsx'
+import { PageHeader, EmptyState } from '../../features/admin/components/AdminTable.jsx'
 import {
   useAdminCategories, useCreateCategory,
-  useUpdateCategory, useToggleCategory,
+  useUpdateCategory,  useToggleCategory,
 } from '../../features/admin/hooks/useAdmin.js'
 
+/* ── Slug helper ───────────────────────────────────────────────────────── */
 function slugify(str) {
   return str
     .toLowerCase()
@@ -25,13 +30,13 @@ function slugify(str) {
 
 const EMPTY_FORM = { name: '', slug: '', description: '', icon: '', parent_id: '' }
 
+/* ── Category form ─────────────────────────────────────────────────────── */
 function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, loading, error }) {
-  const [form, setForm] = useState(initial)
+  const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
 
   function set(key, val) {
     setForm(f => {
       const next = { ...f, [key]: val }
-      // Auto-generate slug from name if user hasn't manually changed it
       if (key === 'name' && (f.slug === slugify(f.name) || f.slug === '')) {
         next.slug = slugify(val)
       }
@@ -45,39 +50,44 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
       name:        form.name.trim(),
       slug:        form.slug.trim(),
       description: form.description.trim() || undefined,
-      icon:        form.icon.trim() || undefined,
-      parent_id:   form.parent_id || undefined,
+      icon:        form.icon.trim()        || undefined,
+      parent_id:   form.parent_id          || undefined,
     })
   }
 
-  const field = 'block w-full h-8 px-3 text-[13px] bg-surface border border-border rounded focus:outline-none focus:ring-1 focus:ring-brand text-ink placeholder:text-ink-3'
-  const label = 'block text-[12px] font-medium text-ink-2 mb-1'
+  const inputCls = `
+    block w-full h-9 px-3 text-[13px]
+    bg-canvas border border-border rounded-lg
+    focus:outline-none focus:ring-2 focus:ring-brand/10 focus:border-brand
+    text-ink placeholder:text-ink-3 transition-all duration-150
+  `
+  const labelCls = 'block text-[12px] font-medium text-ink-2 mb-1'
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-danger-bg border border-red-200 rounded px-3 py-2 text-[12.5px] text-danger">
+        <div className="bg-danger-bg border border-red-200 rounded-lg px-3 py-2 text-[12.5px] text-danger">
           {error?.response?.data?.message || 'Save failed.'}
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className={label}>Name <span className="text-danger">*</span></label>
-          <input className={field} value={form.name} onChange={e => set('name', e.target.value)} required maxLength={100} placeholder="e.g. Electronics" />
+          <label className={labelCls}>Name <span className="text-danger">*</span></label>
+          <input className={inputCls} value={form.name} onChange={e => set('name', e.target.value)} required maxLength={100} placeholder="e.g. Electronics" />
         </div>
         <div>
-          <label className={label}>Slug <span className="text-danger">*</span></label>
-          <input className={field} value={form.slug} onChange={e => set('slug', e.target.value)} required maxLength={100} placeholder="e.g. electronics" pattern="^[a-z0-9-]+$" />
-          <p className="text-[11px] text-ink-3 mt-1">Lowercase letters, numbers, hyphens only.</p>
+          <label className={labelCls}>Slug <span className="text-danger">*</span></label>
+          <input className={inputCls} value={form.slug} onChange={e => set('slug', e.target.value)} required maxLength={100} placeholder="e.g. electronics" pattern="^[a-z0-9-]+$" />
+          <p className="text-[11px] text-ink-3 mt-1">Lowercase, numbers, hyphens only.</p>
         </div>
         <div>
-          <label className={label}>Icon / Emoji</label>
-          <input className={field} value={form.icon} onChange={e => set('icon', e.target.value)} maxLength={50} placeholder="e.g. 📱 or icon-id" />
+          <label className={labelCls}>Icon / Emoji</label>
+          <input className={inputCls} value={form.icon} onChange={e => set('icon', e.target.value)} maxLength={50} placeholder="e.g. 📱 or icon-id" />
         </div>
         <div>
-          <label className={label}>Parent category</label>
+          <label className={labelCls}>Parent category</label>
           <select
-            className={field + ' appearance-none'}
+            className={inputCls + ' appearance-none cursor-pointer'}
             value={form.parent_id || ''}
             onChange={e => set('parent_id', e.target.value)}
           >
@@ -88,19 +98,22 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label className={label}>Description</label>
+          <label className={labelCls}>Description</label>
           <textarea
-            className={field + ' h-16 py-2 resize-none'}
+            className={inputCls + ' h-16 py-2 resize-none'}
             value={form.description}
             onChange={e => set('description', e.target.value)}
             maxLength={500}
-            placeholder="Optional description shown in category listings"
+            placeholder="Optional description"
           />
         </div>
       </div>
-      <div className="flex gap-2 justify-end">
-        <button type="button" onClick={onCancel}
-          className="h-8 px-4 text-[13px] text-ink-2 border border-border rounded hover:bg-surface-2">
+      <div className="flex gap-2 justify-end pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-8 px-4 text-[13px] text-ink-2 border border-border rounded-lg hover:bg-surface-2 transition-colors"
+        >
           Cancel
         </button>
         <Button type="submit" size="sm" loading={loading} disabled={!form.name || !form.slug}>
@@ -111,41 +124,53 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
   )
 }
 
+/* ── Toggle button ─────────────────────────────────────────────────────── */
+function ToggleBtn({ cat, onToggle, loading }) {
+  return (
+    <button
+      onClick={() => onToggle(cat.id)}
+      disabled={loading}
+      title={cat.is_active ? 'Deactivate' : 'Activate'}
+      className="text-ink-3 hover:text-brand disabled:opacity-40 transition-colors"
+      aria-label={cat.is_active ? 'Deactivate category' : 'Activate category'}
+    >
+      {loading
+        ? <Loader2 size={15} className="animate-spin" />
+        : cat.is_active
+          ? <ToggleRight size={18} className="text-success" />
+          : <ToggleLeft  size={18} className="text-ink-3" />
+      }
+    </button>
+  )
+}
+
+/* ── Page ──────────────────────────────────────────────────────────────── */
 export default function AdminCategoriesPage() {
   const { data: cats, isLoading, error } = useAdminCategories()
   const create = useCreateCategory()
   const update = useUpdateCategory()
   const toggle = useToggleCategory()
 
-  const [showCreate, setShowCreate] = useState(false)
-  const [editId,     setEditId]     = useState(null)
+  const [showCreate,  setShowCreate]  = useState(false)
+  const [editId,      setEditId]      = useState(null)
+  const [expandedIds, setExpandedIds] = useState(new Set())
 
   const topLevel = (cats || []).filter(c => !c.parent_id)
   const children = (cats || []).filter(c =>  c.parent_id)
 
-  function getChildren(parentId) {
-    return children.filter(c => c.parent_id === parentId)
-  }
-
-  function handleCreate(data) {
-    create.mutate(data, {
-      onSuccess: () => setShowCreate(false),
-    })
-  }
-
-  function handleUpdate(catId, data) {
-    update.mutate({ catId, data }, {
-      onSuccess: () => setEditId(null),
-    })
-  }
+  const getChildren  = id => children.filter(c => c.parent_id === id)
+  const isExpanded   = id => expandedIds.has(id)
+  const toggleExpand = id => setExpandedIds(s => {
+    const n = new Set(s)
+    n.has(id) ? n.delete(id) : n.add(id)
+    return n
+  })
 
   if (error) {
     return (
       <AdminLayout title="Categories">
         <div className="bg-danger-bg border border-red-200 rounded-xl px-4 py-8 text-center">
-          <p className="text-danger text-[13px]">
-            {error?.response?.data?.message || 'Failed to load categories.'}
-          </p>
+          <p className="text-danger text-[13px]">{error?.response?.data?.message || 'Failed to load categories.'}</p>
         </div>
       </AdminLayout>
     )
@@ -153,13 +178,10 @@ export default function AdminCategoriesPage() {
 
   return (
     <AdminLayout title="Categories">
-      <div className="flex flex-col gap-6">
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <p className="text-[13px] text-ink-2">
-            {isLoading ? '…' : `${(cats || []).length} categories total`}
-          </p>
+      <PageHeader
+        title="Categories"
+        subtitle="Manage the taxonomy used across the platform."
+        action={
           <Button
             size="sm"
             icon={<Plus size={13} />}
@@ -167,159 +189,176 @@ export default function AdminCategoriesPage() {
           >
             New category
           </Button>
+        }
+      />
+
+      {/* Create form */}
+      {showCreate && (
+        <div className="bg-surface border border-brand-border rounded-2xl p-5 mb-6">
+          <h3 className="text-[14px] font-semibold text-ink mb-4">New category</h3>
+          <CategoryForm
+            parents={topLevel}
+            onSubmit={data => create.mutate(data, { onSuccess: () => setShowCreate(false) })}
+            onCancel={() => setShowCreate(false)}
+            loading={create.isPending}
+            error={create.error}
+          />
         </div>
+      )}
 
-        {/* Create form */}
-        {showCreate && (
-          <div className="bg-surface border border-brand rounded-xl p-5">
-            <h3 className="text-[14px] font-semibold text-ink mb-4">New category</h3>
-            <CategoryForm
-              parents={topLevel}
-              onSubmit={handleCreate}
-              onCancel={() => setShowCreate(false)}
-              loading={create.isPending}
-              error={create.error}
-            />
-          </div>
-        )}
+      {/* Loading skeletons */}
+      {isLoading && (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-surface border border-border rounded-xl h-14 animate-pulse" />
+          ))}
+        </div>
+      )}
 
-        {/* Loading skeletons */}
-        {isLoading && (
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 rounded-xl" />
-            ))}
-          </div>
-        )}
+      {/* Empty state */}
+      {!isLoading && topLevel.length === 0 && !showCreate && (
+        <EmptyState
+          icon={Tag}
+          title="No categories yet"
+          message='Click "New category" to add the first one.'
+        />
+      )}
 
-        {/* Category list */}
-        {!isLoading && topLevel.length === 0 && !showCreate && (
-          <div className="text-center py-12 text-[13px] text-ink-3 border border-dashed border-border rounded-xl">
-            No categories yet. Click "New category" to add one.
-          </div>
-        )}
+      {/* Category list */}
+      {!isLoading && topLevel.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {topLevel.map(cat => {
+            const kids        = getChildren(cat.id)
+            const hasChildren = kids.length > 0
+            const expanded    = isExpanded(cat.id)
 
-        {!isLoading && topLevel.map(cat => (
-          <div key={cat.id} className="bg-surface border border-border rounded-xl overflow-hidden">
-            {/* Parent row */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface-2">
-              <span className="text-lg w-6">{cat.icon || '📁'}</span>
-              <div className="flex-1 min-w-0">
-                {editId === cat.id ? (
-                  <CategoryForm
-                    initial={{
-                      name: cat.name,
-                      slug: cat.slug,
-                      description: cat.description || '',
-                      icon: cat.icon || '',
-                      parent_id: cat.parent_id || '',
-                    }}
-                    parents={topLevel.filter(p => p.id !== cat.id)}
-                    onSubmit={(data) => handleUpdate(cat.id, data)}
-                    onCancel={() => setEditId(null)}
-                    loading={update.isPending}
-                    error={update.error}
-                  />
-                ) : (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[14px] font-semibold text-ink">{cat.name}</span>
-                    <span className="text-[11px] text-ink-3">/{cat.slug}</span>
-                    {cat.is_active
-                      ? <Badge variant="success" size="xs">Active</Badge>
-                      : <Badge variant="default" size="xs">Inactive</Badge>}
-                    {cat.ad_count > 0 && (
-                      <span className="text-[11px] text-ink-3">{cat.ad_count} ads</span>
+            return (
+              <div
+                key={cat.id}
+                className="bg-surface border border-border rounded-xl overflow-hidden"
+              >
+                {/* Parent row */}
+                <div className="flex items-center gap-3 px-4 py-3">
+                  {/* Expand toggle */}
+                  {hasChildren ? (
+                    <button
+                      onClick={() => toggleExpand(cat.id)}
+                      className="text-ink-3 hover:text-ink transition-colors shrink-0"
+                      aria-label={expanded ? 'Collapse' : 'Expand'}
+                    >
+                      {expanded
+                        ? <ChevronDown  size={14} />
+                        : <ChevronRight size={14} />
+                      }
+                    </button>
+                  ) : (
+                    <span className="w-[14px] shrink-0" />
+                  )}
+
+                  {/* Icon */}
+                  <span className="text-[18px] w-6 shrink-0 leading-none">{cat.icon || '📁'}</span>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {editId === cat.id ? (
+                      <CategoryForm
+                        initial={{ name: cat.name, slug: cat.slug, description: cat.description || '', icon: cat.icon || '', parent_id: '' }}
+                        parents={topLevel.filter(p => p.id !== cat.id)}
+                        onSubmit={data => update.mutate({ catId: cat.id, data }, { onSuccess: () => setEditId(null) })}
+                        onCancel={() => setEditId(null)}
+                        loading={update.isPending}
+                        error={update.error}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[14px] font-semibold text-ink">{cat.name}</span>
+                        <span className="text-[11.5px] text-ink-3">/{cat.slug}</span>
+                        {cat.is_active
+                          ? <Badge variant="success" size="xs" dot>Active</Badge>
+                          : <Badge variant="default" size="xs">Inactive</Badge>
+                        }
+                        {hasChildren && (
+                          <span className="text-[11px] text-ink-3">{kids.length} subcategories</span>
+                        )}
+                        {cat.ad_count > 0 && (
+                          <span className="text-[11px] text-ink-3">{Number(cat.ad_count).toLocaleString()} ads</span>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-              {editId !== cat.id && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => { setEditId(cat.id); setShowCreate(false) }}
-                    className="text-ink-3 hover:text-brand transition-colors"
-                    aria-label="Edit category"
-                  >
-                    <Pencil size={13} />
-                  </button>
-                  <button
-                    onClick={() => toggle.mutate(cat.id)}
-                    disabled={toggle.isPending}
-                    className="text-ink-3 hover:text-brand transition-colors disabled:opacity-40"
-                    title={cat.is_active ? 'Deactivate' : 'Activate'}
-                  >
-                    {toggle.isPending
-                      ? <Loader2 size={13} className="animate-spin" />
-                      : cat.is_active
-                        ? <ToggleRight size={16} className="text-success" />
-                        : <ToggleLeft  size={16} className="text-ink-3" />}
-                  </button>
-                </div>
-              )}
-            </div>
 
-            {/* Children */}
-            {getChildren(cat.id).map(child => (
-              <div key={child.id} className="flex items-center gap-3 px-4 py-2.5 pl-10 border-b border-border last:border-0">
-                <span className="text-base w-5">{child.icon || '•'}</span>
-                <div className="flex-1 min-w-0">
-                  {editId === child.id ? (
-                    <CategoryForm
-                      initial={{
-                        name: child.name,
-                        slug: child.slug,
-                        description: child.description || '',
-                        icon: child.icon || '',
-                        parent_id: child.parent_id || '',
-                      }}
-                      parents={topLevel}
-                      onSubmit={(data) => handleUpdate(child.id, data)}
-                      onCancel={() => setEditId(null)}
-                      loading={update.isPending}
-                      error={update.error}
-                    />
-                  ) : (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13px] font-medium text-ink">{child.name}</span>
-                      <span className="text-[11px] text-ink-3">/{child.slug}</span>
-                      {!child.is_active && <Badge variant="default" size="xs">Inactive</Badge>}
-                      {child.ad_count > 0 && (
-                        <span className="text-[11px] text-ink-3">{child.ad_count} ads</span>
-                      )}
+                  {/* Actions */}
+                  {editId !== cat.id && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => { setEditId(cat.id); setShowCreate(false) }}
+                        className="h-7 w-7 flex items-center justify-center rounded-lg text-ink-3 hover:text-brand hover:bg-brand-light transition-all"
+                        aria-label="Edit category"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <ToggleBtn cat={cat} onToggle={id => toggle.mutate(id)} loading={toggle.isPending} />
                     </div>
                   )}
                 </div>
-                {editId !== child.id && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => { setEditId(child.id); setShowCreate(false) }}
-                      className="text-ink-3 hover:text-brand transition-colors"
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      onClick={() => toggle.mutate(child.id)}
-                      disabled={toggle.isPending}
-                      className="text-ink-3 hover:text-brand transition-colors disabled:opacity-40"
-                    >
-                      {child.is_active
-                        ? <ToggleRight size={16} className="text-success" />
-                        : <ToggleLeft  size={16} className="text-ink-3" />}
-                    </button>
+
+                {/* Children — animated accordion */}
+                {hasChildren && expanded && (
+                  <div className="border-t border-border bg-canvas">
+                    {kids.map((child, idx) => (
+                      <div
+                        key={child.id}
+                        className={`flex items-center gap-3 px-4 py-2.5 pl-12 ${idx < kids.length - 1 ? 'border-b border-border' : ''}`}
+                      >
+                        <span className="text-[15px] w-5 shrink-0">{child.icon || '·'}</span>
+                        <div className="flex-1 min-w-0">
+                          {editId === child.id ? (
+                            <CategoryForm
+                              initial={{ name: child.name, slug: child.slug, description: child.description || '', icon: child.icon || '', parent_id: child.parent_id || '' }}
+                              parents={topLevel}
+                              onSubmit={data => update.mutate({ catId: child.id, data }, { onSuccess: () => setEditId(null) })}
+                              onCancel={() => setEditId(null)}
+                              loading={update.isPending}
+                              error={update.error}
+                            />
+                          ) : (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[13.5px] font-medium text-ink">{child.name}</span>
+                              <span className="text-[11.5px] text-ink-3">/{child.slug}</span>
+                              {!child.is_active && <Badge variant="default" size="xs">Inactive</Badge>}
+                              {child.ad_count > 0 && (
+                                <span className="text-[11px] text-ink-3">{Number(child.ad_count).toLocaleString()} ads</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {editId !== child.id && (
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => { setEditId(child.id); setShowCreate(false) }}
+                              className="h-7 w-7 flex items-center justify-center rounded-lg text-ink-3 hover:text-brand hover:bg-brand-light transition-all"
+                              aria-label="Edit subcategory"
+                            >
+                              <Pencil size={13} />
+                            </button>
+                            <ToggleBtn cat={child} onToggle={id => toggle.mutate(id)} loading={toggle.isPending} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        ))}
+            )
+          })}
+        </div>
+      )}
 
-        {/* Toggle error */}
-        {toggle.error && (
-          <div className="bg-danger-bg border border-red-200 rounded-lg px-4 py-2 text-[12.5px] text-danger">
-            {toggle.error?.response?.data?.message || 'Toggle failed.'}
-          </div>
-        )}
-      </div>
+      {toggle.error && (
+        <div className="mt-4 bg-danger-bg border border-red-200 rounded-lg px-4 py-2 text-[12.5px] text-danger">
+          {toggle.error?.response?.data?.message || 'Toggle failed.'}
+        </div>
+      )}
     </AdminLayout>
   )
 }

@@ -1,31 +1,37 @@
 import { useNavigate, Link } from 'react-router-dom'
-import { Plus, Eye, Megaphone, TrendingUp, CreditCard, ArrowRight, Circle } from 'lucide-react'
+import {
+  Eye, TrendingUp, CreditCard, ArrowRight, Star,
+  CheckCircle2, Circle, AlertCircle, Users, MessageSquare,
+  Plus, BadgeCheck, Edit3
+} from 'lucide-react'
 import { DashboardLayout } from '../components/layout/DashboardLayout.jsx'
 import { Button } from '../components/ui/Button.jsx'
 import { Badge } from '../components/ui/Badge.jsx'
 import { Skeleton } from '../components/ui/Skeleton.jsx'
-import { useMyAdvertisements } from '../features/advertisements/hooks/useAdvertisements.js'
+import { useMyProfile, useProfileCompletion, useUpdateProfile } from '../features/profiles/hooks/useProfile.js'
 import { useMySubscription } from '../features/subscriptions/hooks/useSubscriptions.js'
 
-const STATUS_BADGE = {
-  PUBLISHED: <Badge variant="success" dot>Published</Badge>,
-  DRAFT:     <Badge variant="default" dot>Draft</Badge>,
-  PAUSED:    <Badge variant="warning" dot>Paused</Badge>,
-  EXPIRED:   <Badge variant="danger" dot>Expired</Badge>,
-  ARCHIVED:  <Badge variant="default" dot>Archived</Badge>,
-}
-
-function StatCard({ label, value, icon, loading }) {
+function StatCard({ label, value, icon, loading, sub }) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-5">
+    <div className="bg-surface border border-border rounded-2xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[12px] font-medium text-ink-3 uppercase tracking-widest">{label}</span>
+        <span className="text-[11.5px] font-semibold text-ink-3 uppercase tracking-widest">{label}</span>
         <span className="text-ink-3">{icon}</span>
       </div>
       {loading
         ? <Skeleton className="h-7 w-16" />
-        : <div className="text-2xl font-bold text-ink tracking-tight">{value}</div>
+        : <div className="text-2xl font-extrabold text-ink tracking-tight">{value ?? '—'}</div>
       }
+      {sub && <p className="text-[11.5px] text-ink-3 mt-1">{sub}</p>}
+    </div>
+  )
+}
+
+function CompletionBar({ score }) {
+  const color = score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-400' : 'bg-red-400'
+  return (
+    <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+      <div className={`${color} h-2 rounded-full transition-all duration-500`} style={{ width: `${score}%` }} />
     </div>
   )
 }
@@ -34,8 +40,10 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const isLoggedIn = !!localStorage.getItem('accessToken')
 
-  const { data: adsData, isLoading: adsLoading } = useMyAdvertisements({ page_size: 5 })
+  const { data: profile, isLoading: profileLoading } = useMyProfile()
+  const { data: completion, isLoading: completionLoading } = useProfileCompletion()
   const { data: subscription, isLoading: subLoading } = useMySubscription()
+  const updateProfile = useUpdateProfile()
 
   if (!isLoggedIn) {
     return (
@@ -48,42 +56,111 @@ export default function DashboardPage() {
     )
   }
 
-  const ads = adsData?.advertisements || (Array.isArray(adsData) ? adsData : [])
-  const published = ads.filter(a => a.status === 'PUBLISHED').length
-  const drafts    = ads.filter(a => a.status === 'DRAFT').length
-  const total     = adsData?.pagination?.total || ads.length
+  const score = completion?.score ?? 0
+  const checks = completion?.checks ?? []
+  const incompleteChecks = checks.filter(c => !c.done).slice(0, 4)
+  const isPublished = profile?.is_published ?? false
+  const planName = subscription?.plan?.display_name || 'Free'
 
   return (
     <DashboardLayout title="Overview">
       <div className="flex flex-col gap-7">
 
-        {/* Welcome + CTA */}
+        {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-lg font-bold text-ink">Good to see you</h2>
-            <p className="text-sm text-ink-2 mt-0.5">Here's an overview of your account.</p>
+            <h2 className="text-xl font-bold text-ink">
+              {profile ? `Welcome, ${profile.display_name || 'back'}` : 'Dashboard'}
+            </h2>
+            <p className="text-sm text-ink-2 mt-0.5">Your professional presence on the directory.</p>
           </div>
-          <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => navigate('/dashboard/advertisements/new')}>
-            Post new ad
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {profile?.slug && (
+              <Link to={`/p/${profile.slug}`} target="_blank">
+                <Button variant="ghost" size="sm" icon={<Eye size={13} />}>View profile</Button>
+              </Link>
+            )}
+            <Button variant="primary" size="sm" icon={<Edit3 size={13} />} onClick={() => navigate('/dashboard/profile')}>
+              Edit profile
+            </Button>
+          </div>
+        </div>
+
+        {/* Profile completion */}
+        {!completionLoading && (
+          <div className={`rounded-2xl border p-5 ${score >= 80 ? 'bg-emerald-50 border-emerald-200' : score >= 50 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <div>
+                <p className={`text-[13.5px] font-bold ${score >= 80 ? 'text-emerald-700' : score >= 50 ? 'text-amber-700' : 'text-red-700'}`}>
+                  Profile {score}% complete
+                  {score >= 80 && ' 🎉'}
+                </p>
+                <p className="text-[12px] text-ink-2 mt-0.5">
+                  {score < 100 ? 'Complete your profile to rank higher in search results.' : 'Your profile is fully complete!'}
+                </p>
+              </div>
+              <span className={`text-xl font-extrabold ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                {score}%
+              </span>
+            </div>
+            <CompletionBar score={score} />
+            {incompleteChecks.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {incompleteChecks.map(c => (
+                  <span key={c.key} className="inline-flex items-center gap-1 text-[11.5px] text-ink-2 bg-white/70 px-2.5 py-1 rounded-full border border-white">
+                    <Circle size={9} className="text-ink-3" /> {c.label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Published status */}
+        <div className={`flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border ${isPublished ? 'bg-emerald-50 border-emerald-200' : 'bg-surface border-border'}`}>
+          <div className="flex items-center gap-3">
+            {isPublished
+              ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+              : <AlertCircle size={18} className="text-amber-500 shrink-0" />
+            }
+            <div>
+              <p className={`text-[13.5px] font-semibold ${isPublished ? 'text-emerald-700' : 'text-ink'}`}>
+                {isPublished ? 'Your profile is live' : 'Profile is not published yet'}
+              </p>
+              <p className="text-[12px] text-ink-2">
+                {isPublished ? 'Visitors can find and contact you.' : 'Publish it so people can discover you.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant={isPublished ? 'secondary' : 'primary'}
+              size="sm"
+              loading={updateProfile.isPending}
+              onClick={() => profile && updateProfile.mutate({ is_published: !isPublished })}
+            >
+              {isPublished ? 'Unpublish' : '🚀 Publish now'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/profile')}>
+              Edit
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard label="Total listings" value={total} icon={<Megaphone size={15} />} loading={adsLoading} />
-          <StatCard label="Published" value={published} icon={<Eye size={15} />} loading={adsLoading} />
-          <StatCard label="Drafts" value={drafts} icon={<Circle size={15} />} loading={adsLoading} />
-          <StatCard label="Plan" value={subLoading ? '—' : (subscription?.plan?.display_name || 'Free')} icon={<CreditCard size={15} />} loading={subLoading} />
+          <StatCard label="Profile views" value="—" icon={<Eye size={15} />} sub="Last 30 days" />
+          <StatCard label="Contact clicks" value="—" icon={<TrendingUp size={15} />} sub="Last 30 days" />
+          <StatCard label="Reviews" value={profile?.review_count ?? '—'} icon={<Star size={15} />} loading={profileLoading} />
+          <StatCard label="Plan" value={subLoading ? '—' : planName} icon={<CreditCard size={15} />} loading={subLoading} />
         </div>
 
-        {/* Subscription notice */}
+        {/* Subscription */}
         {!subLoading && subscription && (
-          <div className={`flex items-center justify-between gap-4 px-4 py-3 rounded-lg border ${
-            subscription.status === 'ACTIVE' ? 'bg-success-bg border-green-200' : 'bg-warning-bg border-yellow-200'
-          }`}>
+          <div className={`flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl border ${subscription.status === 'ACTIVE' ? 'bg-blue-50 border-blue-200' : 'bg-warning-bg border-yellow-200'}`}>
             <div>
-              <p className={`text-[13px] font-semibold ${subscription.status === 'ACTIVE' ? 'text-success' : 'text-warning'}`}>
-                {subscription.plan.display_name} plan — {subscription.status}
+              <p className={`text-[13px] font-bold ${subscription.status === 'ACTIVE' ? 'text-blue-700' : 'text-warning'}`}>
+                {planName} plan · {subscription.status}
               </p>
               {subscription.days_remaining != null && (
                 <p className="text-[12px] text-ink-2 mt-0.5">
@@ -91,70 +168,38 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <Link to="/pricing" className="text-[12px] font-medium text-brand hover:underline shrink-0">
-              {subscription.plan.name === 'FREE' ? 'Upgrade' : 'Manage'} →
+            <Link to="/pricing">
+              <Button variant="ghost" size="sm">
+                {subscription.plan?.name === 'FREE' ? 'Upgrade →' : 'Manage →'}
+              </Button>
             </Link>
           </div>
         )}
 
-        {/* Recent ads */}
+        {/* Quick actions */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-semibold text-ink">Recent listings</h3>
-            <Link to="/dashboard/advertisements" className="text-[13px] text-brand hover:underline flex items-center gap-1">
-              View all <ArrowRight size={12} />
-            </Link>
+          <h3 className="text-[15px] font-bold text-ink mb-3">Manage your profile</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { label: 'Edit profile info',  to: '/dashboard/profile',              icon: <Edit3 size={15} /> },
+              { label: 'Services',           to: '/dashboard/profile/services',      icon: <Plus size={15} /> },
+              { label: 'Portfolio',          to: '/dashboard/profile/portfolio',     icon: <Plus size={15} /> },
+              { label: 'Social links',       to: '/dashboard/profile/social-links',  icon: <Plus size={15} /> },
+              { label: 'Business hours',     to: '/dashboard/profile/hours',         icon: <Plus size={15} /> },
+              { label: 'Posts & updates',    to: '/dashboard/profile/posts',         icon: <Plus size={15} /> },
+              { label: 'Achievements',       to: '/dashboard/profile/achievements',  icon: <Plus size={15} /> },
+            ].map(({ label, to, icon }) => (
+              <Link key={to} to={to}
+                className="flex items-center gap-2.5 p-3.5 bg-surface border border-border rounded-xl hover:border-brand hover:shadow-sm transition-all group hover:no-underline"
+              >
+                <span className="text-ink-3 group-hover:text-brand transition-colors">{icon}</span>
+                <span className="text-[13px] font-medium text-ink">{label}</span>
+                <ArrowRight size={12} className="ml-auto text-ink-4 group-hover:text-brand transition-colors" />
+              </Link>
+            ))}
           </div>
-
-          {adsLoading ? (
-            <div className="flex flex-col gap-2">
-              {[1,2,3].map(i => <Skeleton key={i} className="h-14 rounded-lg" />)}
-            </div>
-          ) : ads.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-border rounded-xl">
-              <p className="text-ink-2 text-sm mb-4">You haven't posted any listings yet.</p>
-              <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => navigate('/dashboard/advertisements/new')}>
-                Post your first ad
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-surface border border-border rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-surface-2">
-                    <th className="text-left text-[11px] font-semibold text-ink-3 uppercase tracking-widest px-4 py-2.5">Title</th>
-                    <th className="text-left text-[11px] font-semibold text-ink-3 uppercase tracking-widest px-4 py-2.5 hidden sm:table-cell">Status</th>
-                    <th className="text-left text-[11px] font-semibold text-ink-3 uppercase tracking-widest px-4 py-2.5 hidden md:table-cell">Category</th>
-                    <th className="px-4 py-2.5" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {ads.slice(0, 5).map(ad => (
-                    <tr key={ad.id} className="hover:bg-surface-2 transition-colors">
-                      <td className="px-4 py-3">
-                        <span className="text-[13.5px] font-medium text-ink line-clamp-1">{ad.title}</span>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        {STATUS_BADGE[ad.status] || <Badge variant="default">{ad.status}</Badge>}
-                      </td>
-                      <td className="px-4 py-3 text-[12px] text-ink-2 hidden md:table-cell">
-                        {ad.category_name || '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          to={`/dashboard/advertisements/${ad.id}/edit`}
-                          className="text-[12px] text-brand hover:underline font-medium"
-                        >
-                          Edit
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
+
       </div>
     </DashboardLayout>
   )

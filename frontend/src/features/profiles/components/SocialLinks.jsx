@@ -1,42 +1,60 @@
-import { Globe, Link, Share2, Send, GitBranch } from 'lucide-react'
+/**
+ * SocialLinks.jsx — Professional social media link buttons with real brand icons.
+ * Uses react-icons/si (Simple Icons) for authentic brand SVGs with correct colors.
+ */
+import {
+  SiFacebook, SiInstagram, SiTiktok, SiTelegram, SiWhatsapp,
+  SiLinkedin, SiYoutube, SiX, SiSnapchat, SiGithub,
+} from 'react-icons/si'
+import { Globe, Link } from 'lucide-react'
 
-// Lucide-react v1.x removed branded social icons (Facebook, Instagram, etc.)
-// We use generic stand-ins that convey the same meaning without brand trademarks.
-const ICONS = {
-  FACEBOOK:  <Share2    size={15} />,
-  INSTAGRAM: <Share2    size={15} />,
-  LINKEDIN:  <Link      size={15} />,
-  YOUTUBE:   <Share2    size={15} />,
-  GITHUB:    <GitBranch size={15} />,
-  TELEGRAM:  <Send      size={15} />,
-  WEBSITE:   <Globe     size={15} />,
-  OTHER:     <Globe     size={15} />,
-}
-
-const LABELS = {
-  FACEBOOK: 'Facebook', INSTAGRAM: 'Instagram', LINKEDIN: 'LinkedIn',
-  YOUTUBE: 'YouTube', GITHUB: 'GitHub', TELEGRAM: 'Telegram',
-  TIKTOK: 'TikTok', TWITTER: 'X', SNAPCHAT: 'Snapchat',
-  WHATSAPP: 'WhatsApp', WEBSITE: 'Website', OTHER: 'Link',
+// Brand colors — official hex codes for each platform
+const BRAND_CONFIG = {
+  FACEBOOK:  { icon: SiFacebook,  color: '#1877F2', bg: '#E7F0FD', label: 'Facebook' },
+  INSTAGRAM: { icon: SiInstagram, color: '#E4405F', bg: '#FDE8EC', label: 'Instagram' },
+  TIKTOK:    { icon: SiTiktok,    color: '#000000', bg: '#F0F0F0', label: 'TikTok' },
+  TELEGRAM:  { icon: SiTelegram,  color: '#26A5E4', bg: '#E3F4FD', label: 'Telegram' },
+  WHATSAPP:  { icon: SiWhatsapp,  color: '#25D366', bg: '#E4FAF0', label: 'WhatsApp' },
+  LINKEDIN:  { icon: SiLinkedin,  color: '#0A66C2', bg: '#E3EDF9', label: 'LinkedIn' },
+  YOUTUBE:   { icon: SiYoutube,   color: '#FF0000', bg: '#FFE8E8', label: 'YouTube' },
+  TWITTER:   { icon: SiX,        color: '#000000', bg: '#F0F0F0', label: 'X / Twitter' },
+  SNAPCHAT:  { icon: SiSnapchat,  color: '#FFFC00', bg: '#FFFDE3', label: 'Snapchat' },
+  GITHUB:    { icon: SiGithub,    color: '#181717', bg: '#F0F0F0', label: 'GitHub' },
+  WEBSITE:   { icon: Globe,       color: '#6B7280', bg: '#F3F4F6', label: 'Website' },
+  OTHER:     { icon: Link,        color: '#6B7280', bg: '#F3F4F6', label: 'Link' },
 }
 
 export function SocialLinks({ links = [], className = '' }) {
   if (!links.length) return null
+
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
-      {links.map(link => (
-        <a
-          key={link.id}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={LABELS[link.platform] || link.platform}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium text-ink-2 bg-surface-2 border border-border rounded hover:border-border-2 hover:text-ink transition-colors hover:no-underline"
-        >
-          {ICONS[link.platform] || <Globe size={14} />}
-          {LABELS[link.platform] || link.platform}
-        </a>
-      ))}
+      {links.map(link => {
+        const config = BRAND_CONFIG[link.platform] || BRAND_CONFIG.OTHER
+        const IconComponent = config.icon
+
+        return (
+          <a
+            key={link.id || link.platform}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={config.label}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-[12.5px] transition-all duration-150 hover:no-underline hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+            style={{
+              backgroundColor: config.bg,
+              color: config.color,
+              border: `1.5px solid ${config.color}22`,
+            }}
+          >
+            <IconComponent
+              size={15}
+              style={{ color: config.color, flexShrink: 0 }}
+            />
+            <span>{config.label}</span>
+          </a>
+        )
+      })}
     </div>
   )
 }

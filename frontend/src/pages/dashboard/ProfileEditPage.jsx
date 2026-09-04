@@ -10,6 +10,8 @@ import {
   useUploadAvatar, useUploadCover, useDeleteAvatar, useDeleteCover,
 } from '../../features/profiles/hooks/useProfile.js'
 import * as profilesApi from '../../services/profiles.service.js'
+import { useCategories } from '../../features/profiles/hooks/useCategories.js'
+import { LocationPicker } from '../../features/locations/components/LocationPicker.jsx'
 
 const PROFILE_TYPES = [
   { value: 'PERSONAL',      label: 'Personal — individual / personal' },
@@ -50,7 +52,7 @@ const emptyForm = {
 function CreateProfileSetup({ onCreated }) {
   const createMutation = useCreateProfile()
   const [step, setStep] = useState(1)
-  const [form, setForm] = useState({ display_name: '', slug: '', profile_type: 'PERSONAL' })
+  const [form, setForm] = useState({ display_name: '', slug: '', profile_type: 'PERSONAL', category_id: '' })
   const [slugStatus, setSlugStatus] = useState(null)
   const [error, setError] = useState('')
   let slugTimer = null
@@ -96,11 +98,28 @@ function CreateProfileSetup({ onCreated }) {
         display_name: form.display_name.trim(),
         slug: form.slug.trim(),
         profile_type: form.profile_type,
+        category_id: form.category_id || null,
         is_published: false,
       })
       onCreated?.()
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to create profile')
+    }
+  }
+
+  const { data: categoriesData } = useCategories()
+
+  // Flatten category tree into a grouped select list
+  const categoryOptions = []
+  if (Array.isArray(categoriesData)) {
+    const roots = categoriesData.filter(c => !c.parent_id)
+    const children = categoriesData.filter(c => c.parent_id)
+    for (const root of roots) {
+      categoryOptions.push({ value: root.id, label: `${root.icon || ''} ${root.name}`.trim(), isParent: true })
+      const subs = children.filter(c => c.parent_id === root.id)
+      for (const sub of subs) {
+        categoryOptions.push({ value: sub.id, label: `  ${sub.icon || ''}  ${sub.name}`.trim(), isParent: false })
+      }
     }
   }
 
@@ -151,6 +170,21 @@ function CreateProfileSetup({ onCreated }) {
               </Select>
             </FormField>
 
+            <FormField label="Category" hint="How people will find you in the directory">
+              <Select value={form.category_id || ''} onChange={set('category_id')}>
+                <option value="">— Select a category —</option>
+                {categoryOptions.map(opt => (
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                    style={opt.isParent ? { fontWeight: 'bold' } : { paddingLeft: '16px' }}
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+
             {error && <p className="text-[13px] text-danger">{error}</p>}
 
             <Button type="submit" variant="primary" fullWidth loading={createMutation.isPending} size="lg">
@@ -176,6 +210,22 @@ export default function ProfileEditPage() {
   const avatarRef = useRef()
   const coverRef  = useRef()
 
+  const { data: categoriesData } = useCategories()
+
+  // Flatten category tree into a grouped select list
+  const categoryOptions = []
+  if (Array.isArray(categoriesData)) {
+    const roots = categoriesData.filter(c => !c.parent_id)
+    const children = categoriesData.filter(c => c.parent_id)
+    for (const root of roots) {
+      categoryOptions.push({ value: root.id, label: `${root.icon || ''} ${root.name}`.trim(), isParent: true })
+      const subs = children.filter(c => c.parent_id === root.id)
+      for (const sub of subs) {
+        categoryOptions.push({ value: sub.id, label: `  ${sub.icon || ''}  ${sub.name}`.trim(), isParent: false })
+      }
+    }
+  }
+
   const [form, setForm] = useState(null)
   const [slugStatus, setSlugStatus] = useState(null)
   const [saved, setSaved]   = useState(false)
@@ -188,6 +238,7 @@ export default function ProfileEditPage() {
         display_name:      profile.display_name || '',
         slug:              profile.slug || '',
         profile_type:      profile.profile_type || 'PERSONAL',
+        category_id:       profile.category_id || '',
         headline:          profile.headline || '',
         description:       profile.description || '',
         contact_phone:     profile.contact_phone || '',
@@ -200,6 +251,9 @@ export default function ProfileEditPage() {
         city:              profile.city || '',
         area:              profile.area || '',
         address_line:      profile.address_line || '',
+        latitude:          profile.latitude ?? null,
+        longitude:         profile.longitude ?? null,
+        location_precision: profile.location_precision || 'CITY',
         phone_visibility:  profile.phone_visibility || 'PUBLIC',
         email_visibility:  profile.email_visibility || 'PUBLIC',
         is_published:      profile.is_published ?? false,
@@ -237,16 +291,24 @@ export default function ProfileEditPage() {
         'whatsapp','telegram_username','country','region','city','area','address_line',
       ]
       // Keys to never send to the server
-      const internalKeys = ['_slug_edited']
+      const internalKeys = ['_slugEdited', '_slug_edited']
+      // Keys handled separately below (typed as numbers, not strings)
+      const separateKeys = ['latitude', 'longitude', 'location_precision']
 
+      const nullableFields = [...optionalStrings, 'category_id']
       Object.keys(form).forEach(k => {
         if (internalKeys.includes(k)) return
-        if (optionalStrings.includes(k)) {
+        if (separateKeys.includes(k)) return
+        if (nullableFields.includes(k)) {
           payload[k] = form[k] === '' ? null : form[k]
         } else {
           payload[k] = form[k]
         }
       })
+      // Lat/lng — pass as numbers or null (not strings)
+      if ('latitude' in form) payload.latitude = form.latitude === '' || form.latitude == null ? null : Number(form.latitude)
+      if ('longitude' in form) payload.longitude = form.longitude === '' || form.longitude == null ? null : Number(form.longitude)
+      if ('location_precision' in form) payload.location_precision = form.location_precision || 'CITY'
       await updateMutation.mutateAsync(payload)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
@@ -303,12 +365,33 @@ export default function ProfileEditPage() {
             </div>
             {checks.filter(c => !c.done).length > 0 && (
               <div className="mt-3 space-y-1">
-                {checks.filter(c => !c.done).slice(0, 4).map(c => (
-                  <p key={c.key} className="text-[12px] text-ink-3 flex items-center gap-1.5">
-                    <span className="w-1 h-1 rounded-full bg-border-2 shrink-0" />
-                    {c.label}
-                  </p>
-                ))}
+                {checks.filter(c => !c.done).slice(0, 4).map(c => {
+                  const CHECK_LINKS = {
+                    social: '/dashboard/profile/social-links',
+                    hours: '/dashboard/profile/hours',
+                    service: '/dashboard/profile/services',
+                    portfolio: '/dashboard/profile/portfolio',
+                    avatar: null,
+                    cover: null,
+                    headline: null,
+                    description: null,
+                    location: null,
+                    contact: null,
+                    published: null,
+                  }
+                  const href = CHECK_LINKS[c.key]
+                  return href ? (
+                    <Link key={c.key} to={href} className="text-[12px] text-brand flex items-center gap-1.5 hover:underline">
+                      <span className="w-1 h-1 rounded-full bg-brand shrink-0" />
+                      {c.label} →
+                    </Link>
+                  ) : (
+                    <p key={c.key} className="text-[12px] text-ink-3 flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-border-2 shrink-0" />
+                      {c.label}
+                    </p>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -366,7 +449,7 @@ export default function ProfileEditPage() {
             <div className="flex-1 pb-1 min-w-0">
               <p className="text-[14px] font-bold text-ink truncate">{profile.display_name}</p>
               {profile.slug && (
-                <Link to={`/@${profile.slug}`} target="_blank"
+                <Link to={`/p/${profile.slug}`} target="_blank"
                   className="text-[12px] text-brand flex items-center gap-1 hover:underline w-fit">
                   /@{profile.slug} <ExternalLink size={10} />
                 </Link>
@@ -388,10 +471,28 @@ export default function ProfileEditPage() {
               </FormField>
               <FormField label="Profile Type">
                 <Select value={form.profile_type} onChange={set('profile_type')}>
-                  {PROFILE_TYPES.map(t => <option key={t.value} value={t.value}>{t.value}</option>)}
+                  {PROFILE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </Select>
               </FormField>
             </div>
+
+            <FormField
+              label="Category"
+              hint="Choose the category that best describes what you do — this is how people find you"
+            >
+              <Select value={form.category_id || ''} onChange={set('category_id')}>
+                <option value="">— Select a category —</option>
+                {categoryOptions.map(opt => (
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                    style={opt.isParent ? { fontWeight: 'bold' } : { paddingLeft: '16px' }}
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
 
             <FormField
               label="Public URL"
@@ -421,11 +522,24 @@ export default function ProfileEditPage() {
                 placeholder="Tell visitors who you are and what you offer..." />
             </FormField>
 
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={form.is_published} onChange={set('is_published')}
-                className="w-4 h-4 rounded border-border-2 accent-brand" />
-              <span className="text-[13px] font-medium text-ink">Make profile public</span>
-            </label>
+            {/* Publish toggle */}
+            <div className={`flex items-center justify-between gap-4 p-3.5 rounded-xl border ${form.is_published ? 'bg-emerald-50 border-emerald-200' : 'bg-surface-2 border-border'}`}>
+              <div>
+                <p className={`text-[13px] font-semibold ${form.is_published ? 'text-emerald-700' : 'text-ink'}`}>
+                  {form.is_published ? '✅ Profile is public' : '🔒 Profile is hidden'}
+                </p>
+                <p className="text-[11.5px] text-ink-3 mt-0.5">
+                  {form.is_published ? 'People can find you in the directory' : 'Toggle to make your profile discoverable'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, is_published: !f.is_published }))}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${form.is_published ? 'bg-emerald-500' : 'bg-border-2'}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_published ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
           </section>
 
           {/* Contact */}
@@ -467,23 +581,48 @@ export default function ProfileEditPage() {
           {/* Location */}
           <section className="bg-surface border border-border rounded-xl p-5 space-y-4">
             <h2 className="text-[13.5px] font-bold text-ink">Location</h2>
+            <p className="text-[12.5px] text-ink-3">
+              Pin your location on the map. Visitors will be able to see where you are and get directions to find you.
+            </p>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            {/* Map picker */}
+            <LocationPicker
+              latitude={form.latitude}
+              longitude={form.longitude}
+              address={form.address_line || ''}
+              height="280px"
+              onChange={({ latitude, longitude, address }) => {
+                setForm(f => ({
+                  ...f,
+                  latitude,
+                  longitude,
+                  address_line: address || f.address_line,
+                }))
+              }}
+            />
+
+            {/* Text fields for city/country still needed for search filtering */}
+            <div className="grid sm:grid-cols-2 gap-4 pt-1">
               <FormField label="Country">
                 <Input value={form.country} onChange={set('country')} placeholder="Ethiopia" />
               </FormField>
               <FormField label="Region / State">
                 <Input value={form.region} onChange={set('region')} placeholder="Amhara" />
               </FormField>
-              <FormField label="City">
+              <FormField label="City" hint="Used for search by city name">
                 <Input value={form.city} onChange={set('city')} placeholder="Gondar" />
               </FormField>
               <FormField label="Area / Neighborhood">
                 <Input value={form.area} onChange={set('area')} placeholder="Azezo" />
               </FormField>
             </div>
-            <FormField label="Street Address" hint="Exact address — only shown if location precision is set to Full">
-              <Input value={form.address_line} onChange={set('address_line')} placeholder="123 Main Street" />
+
+            <FormField label="Location Visibility" hint="How precisely your location is shown publicly">
+              <Select value={form.location_precision || 'CITY'} onChange={set('location_precision')}>
+                <option value="CITY">City only — just show city name</option>
+                <option value="DISTRICT">District — show city + area</option>
+                <option value="FULL">Full — show exact map pin</option>
+              </Select>
             </FormField>
           </section>
 

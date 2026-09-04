@@ -58,13 +58,17 @@ export const slugParamSchema = z.object({
 
 export const searchProfilesSchema = z.object({
   query: z.object({
-    search:       z.string().max(200).optional(),
-    profile_type: z.enum(['PERSONAL','PROFESSIONAL','FREELANCER','SHOP','BUSINESS','COMPANY','ORGANIZATION']).optional(),
-    category_id:  uuid.optional(),
-    city:         z.string().max(100).optional(),
-    country:      z.string().max(100).optional(),
-    page:         pageQ,
-    page_size:    pageQ,
+    search:         z.string().max(200).optional(),
+    profile_type:   z.enum(['PERSONAL','PROFESSIONAL','FREELANCER','SHOP','BUSINESS','COMPANY','ORGANIZATION']).optional(),
+    category_id:    uuid.optional(),
+    city:           z.string().max(100).optional(),
+    country:        z.string().max(100).optional(),
+    verified_only:  z.string().optional(),
+    latitude:       z.coerce.number().optional(),
+    longitude:      z.coerce.number().optional(),
+    radius_km:      z.coerce.number().optional(),
+    page:           pageQ,
+    page_size:      pageQ,
   }).optional(),
 })
 
@@ -182,4 +186,39 @@ export const achievementParamSchema  = z.object({ params: z.object({ id: uuid })
 
 export const contentImageParamSchema = z.object({
   params: z.object({ id: uuid, imageId: uuid }),
+})
+
+// ── Reviews ────────────────────────────────────────────────────────────────────
+
+export const reviewSlugParamSchema = z.object({
+  params: z.object({ slug: z.string().min(2).max(100) }),
+})
+
+export const reviewIdParamSchema = z.object({
+  params: z.object({ slug: z.string().min(2).max(100), reviewId: uuid }),
+})
+
+export const createReviewSchema = z.object({
+  params: z.object({ slug: z.string().min(2).max(100) }),
+  body: z.object({
+    rating:  z.number().int().min(1).max(5),
+    comment: z.string().min(1).max(2000).optional(),
+  }).strict(),
+})
+
+export const updateReviewSchema = z.object({
+  params: z.object({ slug: z.string().min(2).max(100), reviewId: uuid }),
+  body: z.object({
+    rating:  z.number().int().min(1).max(5).optional(),
+    comment: z.string().min(1).max(2000).optional(),
+  }).strict().refine(d => Object.keys(d).length > 0, { message: 'At least one field required' }),
+})
+
+// ── Review Replies ─────────────────────────────────────────────────────────────
+
+export const reviewReplySchema = z.object({
+  params: z.object({ slug: z.string().min(2).max(100), reviewId: uuid }),
+  body: z.object({
+    body: z.string().min(1).max(2000),
+  }).strict(),
 })

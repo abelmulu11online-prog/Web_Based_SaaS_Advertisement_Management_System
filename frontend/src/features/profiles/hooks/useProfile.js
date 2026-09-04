@@ -8,14 +8,13 @@ const KEYS = {
   myProfile:    ['profile', 'mine'],
   completion:   ['profile', 'completion'],
   publicProfile: (slug) => ['profiles', 'public', slug],
-  publicProducts: (slug, p) => ['profiles', 'public', slug, 'products', p],
   publicServices: (slug, p) => ['profiles', 'public', slug, 'services', p],
   publicPortfolio: (slug, p) => ['profiles', 'public', slug, 'portfolio', p],
   publicPosts: (slug, p) => ['profiles', 'public', slug, 'posts', p],
   publicAchievements: (slug) => ['profiles', 'public', slug, 'achievements'],
+  publicReviews: (slug, p) => ['profiles', 'public', slug, 'reviews', p],
   search: (params) => ['profiles', 'search', params],
   slugCheck: (slug) => ['profiles', 'slug-check', slug],
-  myProducts:  (p) => ['profile', 'products', p],
   myServices:  (p) => ['profile', 'services', p],
   myPortfolio: (p) => ['profile', 'portfolio', p],
   myPosts:     (p) => ['profile', 'posts', p],
@@ -51,6 +50,7 @@ export function useUpdateProfile() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.myProfile })
       qc.invalidateQueries({ queryKey: KEYS.completion })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
     },
   })
 }
@@ -131,14 +131,6 @@ export function usePublicProfile(slug) {
   })
 }
 
-export function usePublicProducts(slug, page = 1) {
-  return useQuery({
-    queryKey: KEYS.publicProducts(slug, page),
-    queryFn:  () => api.getPublicProducts(slug, { page }),
-    enabled:  !!slug,
-  })
-}
-
 export function usePublicServices(slug, page = 1) {
   return useQuery({
     queryKey: KEYS.publicServices(slug, page),
@@ -185,43 +177,6 @@ export function useSlugCheck(slug) {
     queryFn:  () => api.checkSlugAvailability(slug),
     enabled:  slug?.length >= 2,
     staleTime: 5000,
-  })
-}
-
-// ── Products ───────────────────────────────────────────────────────────────────
-
-export function useMyProducts(page = 1) {
-  return useQuery({
-    queryKey: KEYS.myProducts(page),
-    queryFn:  () => api.getMyProducts({ page }),
-    enabled:  isAuthed(),
-  })
-}
-
-export function useCreateProduct() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (data) => api.createProduct(data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['profile', 'products'] })
-      qc.invalidateQueries({ queryKey: KEYS.completion })
-    },
-  })
-}
-
-export function useUpdateProduct() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, data }) => api.updateProduct(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile', 'products'] }),
-  })
-}
-
-export function useDeleteProduct() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id) => api.deleteProduct(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile', 'products'] }),
   })
 }
 
@@ -361,5 +316,95 @@ export function useDeleteAchievement() {
   return useMutation({
     mutationFn: (id) => api.deleteAchievement(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.myAchievements }),
+  })
+}
+
+// ── Reviews ───────────────────────────────────────────────────────────────────
+
+export function usePublicReviews(slug, page = 1) {
+  return useQuery({
+    queryKey: KEYS.publicReviews(slug, page),
+    queryFn: () => api.getPublicReviews(slug, { page }),
+    enabled: !!slug,
+    staleTime: 30 * 1000,
+  })
+}
+
+export function useSubmitReview(slug) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => api.submitReview(slug, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profiles', 'public', slug, 'reviews'] })
+      qc.invalidateQueries({ queryKey: KEYS.publicProfile(slug) })
+    },
+  })
+}
+
+export function useUpdateReview(slug) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ reviewId, data }) => api.updateReview(slug, reviewId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profiles', 'public', slug, 'reviews'] })
+    },
+  })
+}
+
+export function useDeleteReview(slug) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (reviewId) => api.deleteReview(slug, reviewId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profiles', 'public', slug, 'reviews'] })
+      qc.invalidateQueries({ queryKey: KEYS.publicProfile(slug) })
+    },
+  })
+}
+
+// ── Review replies + notifications ─────────────────────────────────────────────
+
+export function useAddReviewReply(slug) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ reviewId, body }) => api.addReviewReply(slug, reviewId, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profiles', 'public', slug, 'reviews'] })
+    },
+  })
+}
+
+export function useDeleteReviewReply(slug) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (reviewId) => api.deleteReviewReply(slug, reviewId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profiles', 'public', slug, 'reviews'] })
+    },
+  })
+}
+
+export function useNotifications() {
+  return useQuery({
+    queryKey: ['notifications'],
+    queryFn: api.getNotifications,
+    enabled: isAuthed(),
+    refetchInterval: 30000, // poll every 30s
+  })
+}
+
+export function useMarkNotificationRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => api.markNotificationRead(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+  })
+}
+
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.markAllNotificationsRead(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   })
 }
