@@ -32,6 +32,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Kiro IDE
+.kiro/
+
 # Coverage
 coverage/
 **/coverage/
