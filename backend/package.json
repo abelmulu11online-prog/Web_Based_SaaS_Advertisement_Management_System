@@ -1,0 +1,43 @@
+{
+  "name": "local-discovery-backend",
+  "version": "0.1.0",
+  "description": "Node.js + Express API for the Local Discovery & Self-Advertising Platform",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "npm run test:setup && node --test --test-concurrency=1 tests/**/*.test.js",
+    "test:run": "node --test --test-concurrency=1 tests/**/*.test.js",
+    "test:setup": "node database/migrate.js && node database/seed.js",
+    "db:migrate": "node database/migrate.js",
+    "db:migrate:status": "node database/migrate.js --status",
+    "db:seed": "node database/seed.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
+    "bcryptjs": "^3.0.3",
+    "cors": "2.8.6",
+    "dotenv": "16.6.1",
+    "express": "4.22.2",
+    "helmet": "7.2.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
+    "node-cron": "3.0.3",
+    "nodemailer": "^9.0.5",
+    "pg": "8.23.0",
+    "pino": "10.3.1",
+    "pino-http": "11.0.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "eslint": "9.39.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
