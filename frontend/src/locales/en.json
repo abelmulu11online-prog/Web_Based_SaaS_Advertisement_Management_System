@@ -1,0 +1,953 @@
+{
+  "lang": {
+    "en": "English",
+    "am": "አማርኛ",
+    "select": "Language"
+  },
+
+  "nav": {
+    "discover": "Discover",
+    "map": "Map",
+    "pricing": "Pricing",
+    "dashboard": "Dashboard",
+    "login": "Log in",
+    "getStarted": "Get started",
+    "getStartedFree": "Get started free",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "search": "Search…",
+    "logoLabel": "GebetaPro — go to homepage"
+  },
+
+  "footer": {
+    "tagline": "Ethiopia's discovery platform. Find skilled people, businesses, and services near you.",
+    "location": "Addis Ababa, Ethiopia",
+    "rights": "© {{year}} GebetaPro. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "builtIn": "Built in Ethiopia",
+    "groups": {
+      "discover": "Discover",
+      "advertise": "Advertise",
+      "company": "Company"
+    },
+    "links": {
+      "browseDirectory": "Browse directory",
+      "freelancers": "Freelancers",
+      "shops": "Shops",
+      "businesses": "Businesses",
+      "mapView": "Map view",
+      "createProfile": "Create profile",
+      "pricingPlans": "Pricing plans",
+      "myDashboard": "My dashboard",
+      "editProfile": "Edit profile",
+      "aboutUs": "About us",
+      "contact": "Contact",
+      "privacyPolicy": "Privacy policy",
+      "termsOfService": "Terms of service"
+    }
+  },
+
+  "home": {
+    "eyebrow": "Ethiopia's discovery platform",
+    "heroTitle1": "Find the right",
+    "heroTitle2": "people & businesses",
+    "heroTitle3": "around you.",
+    "heroSub1": "Professionals, shops, services & freelancers —",
+    "heroSub1Brand": "all in one place.",
+    "heroSub2": "Search by name, category, or location",
+    "popular": "Popular",
+    "searchPlaceholder": "Who or what are you looking for?",
+    "clearSearch": "Clear search",
+    "locationPlaceholder": "City or area",
+    "searchBtn": "Search",
+    "browseByType": "Browse by type",
+    "whatLookingFor": "What are you looking for?",
+    "viewAll": "View all",
+    "viewAllCategories": "View all categories",
+    "featuredListings": "Featured listings",
+    "peopleMakingThings": "People making things happen",
+    "seeAll": "See all",
+    "seeAllListings": "See all listings",
+    "noListingsYet": "No listings yet",
+    "beFirst": "Be the first to advertise yourself on GebetaPro.",
+    "byLocation": "By location",
+    "exploreCity": "Explore your city",
+    "locationDesc": "GebetaPro connects you with skilled people and growing businesses in every major Ethiopian city.",
+    "browseAllLocations": "Browse all locations",
+    "mapDiscovery": "Map discovery",
+    "seeWhoAround": "See who's around you,",
+    "onTheMap": "on the map.",
+    "mapDesc": "Browse businesses, professionals, and services plotted on an interactive map of Ethiopia. Filter by category, zoom to your area.",
+    "openMapView": "Open map view",
+    "whyTitle": "Why GebetaPro?",
+    "whySub": "One place for skilled people, businesses, and services across Ethiopia.",
+    "getDiscoveredTitle": "Ready to get discovered?",
+    "getDiscoveredSub": "Create your free profile today — no credit card required.",
+    "startFreeProfile": "Start your free profile",
+    "browseDirectory": "Browse the directory",
+    "cities": {
+      "addisAbaba": "Addis Ababa",
+      "addisAbabaSub": "Capital · Most listings",
+      "gondar": "Gondar",
+      "gondarSub": "Northern Ethiopia",
+      "hawassa": "Hawassa",
+      "hawassaSub": "Southern Ethiopia",
+      "bahirDar": "Bahir Dar",
+      "bahirDarSub": "Amhara Region",
+      "mekelle": "Mekelle",
+      "mekelleSub": "Tigray Region",
+      "direDawa": "Dire Dawa",
+      "direDawaSub": "Eastern Ethiopia",
+      "jimma": "Jimma",
+      "jimmaSub": "Oromia Region",
+      "adama": "Adama",
+      "adamaSub": "Oromia Region"
+    },
+    "popularSearches": {
+      "electrician": "Electrician",
+      "plumber": "Plumber",
+      "lawyer": "Lawyer",
+      "restaurant": "Restaurant",
+      "photographer": "Photographer",
+      "tutor": "Tutor",
+      "doctor": "Doctor",
+      "driver": "Driver"
+    }
+  },
+
+  "directory": {
+    "title": "Directory",
+    "findAnyone": "Find anyone across Ethiopia",
+    "searchPlaceholder": "Electrician, restaurant, lawyer, shop…",
+    "locationPlaceholder": "City or area",
+    "countryPlaceholder": "Country",
+    "searchBtn": "Search",
+    "clearSearch": "Clear search",
+    "filters": "Filters",
+    "activeFilters": "Active filters",
+    "clearAll": "Clear all",
+    "clearAllFilters": "Clear all filters",
+    "remove": "Remove",
+    "recommended": "Recommended",
+    "highestRated": "Highest rated",
+    "newest": "Newest",
+    "gridView": "Grid view",
+    "listView": "List view",
+    "openMap": "Open map",
+    "results": "results",
+    "result": "result",
+    "verified": "Verified",
+    "verifiedOnly": "Verified only",
+    "useMyLocation": "Use my location",
+    "locationSet": "Location set ✓",
+    "clearLocation": "Clear location",
+    "nearMe": "Near me",
+    "filterGroups": {
+      "nearMe": "Near me",
+      "category": "Category",
+      "location": "Location",
+      "type": "Type",
+      "trust": "Trust"
+    },
+    "allCategories": "All categories",
+    "allTypes": "All types",
+    "profileTypes": {
+      "PROFESSIONAL": "Professional",
+      "FREELANCER": "Freelancer",
+      "BUSINESS": "Business",
+      "SHOP": "Shop",
+      "COMPANY": "Company",
+      "ORGANIZATION": "Organization",
+      "PERSONAL": "Personal"
+    },
+    "sort": "Sort",
+    "applyFilters": "Apply filters",
+    "empty": {
+      "noResults": "No results for \"{{search}}\"",
+      "noProfiles": "No profiles found",
+      "noResultsLocation": "We couldn't find \"{{search}}\" in {{location}}. Try a different location or broader search.",
+      "noResultsCategory": "No {{category}} results for \"{{search}}\". Try removing the category filter.",
+      "tryDifferent": "Try different keywords, or browse without a search term.",
+      "removeFilters": "Try removing some filters to see more results.",
+      "clearSearch": "Clear search",
+      "removeLocation": "Remove location"
+    },
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page"
+    }
+  },
+
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "newAccount": "New to GebetaMarket?",
+      "createFree": "Create a free account",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "forgotPassword": "Forgot password?",
+      "loginBtn": "Log in",
+      "termsNotice": "By continuing you agree to our",
+      "terms": "Terms",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy",
+      "emailVerified": "Email verified!",
+      "accountActive": "Your account is now active — you can log in below.",
+      "resendVerification": "Resend verification email",
+      "sending": "Sending…",
+      "verificationSent": "✓ Verification email sent — check your inbox.",
+      "emailRequired": "Email and password are required."
+    },
+    "register": {
+      "title": "Create your account",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Create a strong password",
+      "confirmLabel": "Confirm password",
+      "confirmPlaceholder": "Repeat your password",
+      "createBtn": "Create account",
+      "verifyNote": "You'll need to verify your email before logging in.",
+      "emailRequired": "Email is required.",
+      "passwordRequired": "Password is required.",
+      "passwordWeak": "Password does not meet all requirements.",
+      "passwordMismatch": "Passwords do not match.",
+      "failed": "Registration failed. Please try again.",
+      "rules": {
+        "length": "At least 8 characters",
+        "uppercase": "Uppercase letter",
+        "number": "Number",
+        "special": "Special character"
+      },
+      "checkInbox": "Check your inbox",
+      "sentTo": "We sent a verification link to",
+      "clickLink": "Click the link in the email to activate your account. The link expires in 24 hours.",
+      "resend": "Didn't receive it? Resend",
+      "resentSuccess": "Resent! Check your inbox again.",
+      "cantFind": "Can't find the email?",
+      "tips": {
+        "spam": "Check your spam or junk folder",
+        "email": "Make sure you entered the right email address",
+        "wait": "Wait a minute — sometimes delivery takes a moment"
+      },
+      "alreadyVerified": "Already verified?",
+      "showPass": "Show password",
+      "hidePass": "Hide password"
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email address and we'll send you a link to reset your password.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "sendBtn": "Send reset link",
+      "backToLogin": "Back to log in",
+      "checkInbox": "Check your inbox",
+      "sentMsg": "If {{email}} is associated with a GebetaPro account, you'll receive a password reset link shortly.",
+      "linkExpires": "The link expires in 1 hour. Check your spam folder if you don't see it.",
+      "tryAgain": "Didn't receive it? Try again",
+      "emailInvalid": "Enter a valid email address.",
+      "emailEmpty": "Please enter your email address.",
+      "serverError": "Something went wrong on our end. Please try again in a moment."
+    },
+    "reset": {
+      "title": "Set a new password",
+      "subtitle": "Choose a strong new password for your account.",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "Create a strong password",
+      "confirmLabel": "Confirm new password",
+      "confirmPlaceholder": "Repeat your new password",
+      "resetBtn": "Reset password",
+      "success": "Password reset! You can now log in.",
+      "loginBtn": "Go to login",
+      "invalidToken": "This reset link is invalid or has expired.",
+      "requestNew": "Request a new link",
+      "failed": "Failed to reset password. The link may have expired."
+    },
+    "verify": {
+      "verifying": "Verifying your email…",
+      "success": "Email verified!",
+      "successMsg": "Your account is now active.",
+      "loginBtn": "Log in now",
+      "failed": "Verification failed",
+      "failedMsg": "This link may have expired or already been used.",
+      "requestNew": "Request a new verification email"
+    }
+  },
+
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "myProfile": "My Profile",
+    "subscription": "Subscription",
+    "welcome": "Welcome, {{name}}",
+    "yourPresence": "Your professional presence on the directory.",
+    "viewProfile": "View profile",
+    "editProfile": "Edit profile",
+    "profileComplete": "Profile {{score}}% complete",
+    "fullyComplete": "Your profile is fully complete!",
+    "rankHigher": "Complete your profile to rank higher in search results.",
+    "profileLive": "Your profile is live",
+    "notPublished": "Profile is not published yet",
+    "visitorsFind": "Visitors can find and contact you.",
+    "publishNow": "🚀 Publish now",
+    "unpublish": "Unpublish",
+    "edit": "Edit",
+    "publish": "Publish it so people can discover you.",
+    "stats": {
+      "profileViews": "Profile views",
+      "contactClicks": "Contact clicks",
+      "reviews": "Reviews",
+      "plan": "Plan",
+      "last30Days": "Last 30 days"
+    },
+    "subscription": {
+      "daysRemaining": "{{days}} days remaining",
+      "expired": "Expired",
+      "upgrade": "Upgrade →",
+      "manage": "Manage →"
+    },
+    "manageProfile": "Manage your profile",
+    "quickActions": {
+      "editProfileInfo": "Edit profile info",
+      "services": "Services",
+      "portfolio": "Portfolio",
+      "socialLinks": "Social links",
+      "businessHours": "Business hours",
+      "posts": "Posts & updates",
+      "achievements": "Achievements"
+    },
+    "loginRequired": "You need to be logged in to view your dashboard.",
+    "login": "Log in",
+    "notifications": {
+      "title": "Notifications",
+      "none": "No notifications yet",
+      "noneDesc": "We'll notify you when someone reviews your profile",
+      "markAllRead": "Mark all as read",
+      "justNow": "just now",
+      "mAgo": "{{m}}m ago",
+      "hAgo": "{{h}}h ago",
+      "dAgo": "{{d}}d ago",
+      "moAgo": "{{mo}}mo ago"
+    },
+    "sidebar": {
+      "profileContent": "Profile Content",
+      "services": "Services",
+      "portfolio": "Portfolio",
+      "socialLinks": "Social Links",
+      "businessHours": "Business Hours",
+      "posts": "Posts",
+      "achievements": "Achievements",
+      "logout": "Log out",
+      "menu": "Menu"
+    }
+  },
+
+  "profile": {
+    "edit": {
+      "title": "Edit Profile",
+      "setupTitle": "Set Up Your Profile",
+      "createTitle": "Create your public profile",
+      "createDesc": "Your profile is your public page. People can discover and contact you through it.",
+      "nameLabel": "What should we call you or your business?",
+      "namePlaceholder": "e.g. Gondar Electronics, Natnael Berhanu",
+      "urlLabel": "Your public URL",
+      "urlHint": "Your profile will be at /@{{slug}}",
+      "urlTaken": "This URL is already taken",
+      "urlTakenShort": "Already taken",
+      "urlPlaceholder": "your-name",
+      "profileTypeLabel": "Profile type",
+      "categoryLabel": "Category",
+      "categoryHint": "How people will find you in the directory",
+      "categoryPlaceholder": "— Select a category —",
+      "createBtn": "Create profile",
+      "createFailed": "Failed to create profile",
+      "basicInfo": "Basic Information",
+      "displayNameLabel": "Display Name",
+      "displayNamePlaceholder": "Your name or business name",
+      "headlineLabel": "Headline",
+      "headlineHint": "Short tagline (max 150 chars)",
+      "headlinePlaceholder": "e.g. Full-Stack Developer · Freelance · Gondar",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Tell visitors who you are and what you offer...",
+      "profilePublic": "✅ Profile is public",
+      "profileHidden": "🔒 Profile is hidden",
+      "profilePublicDesc": "People can find you in the directory",
+      "profileHiddenDesc": "Toggle to make your profile discoverable",
+      "contactTitle": "Contact",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+251 9...",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "whatsappLabel": "WhatsApp",
+      "telegramLabel": "Telegram Username",
+      "telegramPlaceholder": "@username",
+      "websiteLabel": "Website",
+      "websitePlaceholder": "https://yoursite.com",
+      "phoneVisibility": "Phone Visibility",
+      "emailVisibility": "Email Visibility",
+      "locationTitle": "Location",
+      "locationDesc": "Pin your location on the map. Visitors will be able to see where you are and get directions to find you.",
+      "countryLabel": "Country",
+      "regionLabel": "Region / State",
+      "cityLabel": "City",
+      "cityHint": "Used for search by city name",
+      "areaLabel": "Area / Neighborhood",
+      "locationVisibility": "Location Visibility",
+      "locationVisibilityHint": "How precisely your location is shown publicly",
+      "cityOnly": "City only — just show city name",
+      "district": "District — show city + area",
+      "full": "Full — show exact map pin",
+      "saveChanges": "Save changes",
+      "savedSuccessfully": "Saved successfully",
+      "saveFailed": "Failed to save changes",
+      "urlPlaceholderFull": "Share as: platform.com/@{{slug}}",
+      "completionScore": "Profile {{score}}% complete",
+      "changeCover": "Change cover",
+      "removeCover": "Remove cover",
+      "profileTypes": {
+        "PERSONAL": "Personal — individual / personal",
+        "PROFESSIONAL": "Professional — expert / specialist",
+        "FREELANCER": "Freelancer — independent contractor",
+        "SHOP": "Shop — retail / products",
+        "BUSINESS": "Business — company / enterprise",
+        "COMPANY": "Company — registered company",
+        "ORGANIZATION": "Organization — NGO / association"
+      },
+      "visibility": {
+        "PUBLIC": "Public — visible to everyone",
+        "LOGGED_IN": "Logged-in users only",
+        "HIDDEN": "Hidden"
+      }
+    },
+    "public": {
+      "notFound": "Profile not found",
+      "notFoundDesc": "The profile @{{slug}} doesn't exist or isn't public yet.",
+      "browseDirectory": "Browse directory",
+      "home": "Home",
+      "directory": "Directory",
+      "overview": "Overview",
+      "services": "Services",
+      "portfolio": "Portfolio",
+      "updates": "Updates",
+      "achievements": "Achievements",
+      "reviews": "Reviews",
+      "about": "About",
+      "latestUpdates": "Latest updates",
+      "allServices": "All {{count}} services",
+      "viewAll": "View all",
+      "seeAllUpdates": "See all updates",
+      "seeAll": "See all",
+      "allReviews": "All {{count}} reviews",
+      "noServices": "No services published yet.",
+      "noPortfolio": "No portfolio items published yet.",
+      "noPosts": "No updates published yet.",
+      "noAchievements": "No achievements listed yet.",
+      "whatsapp": "WhatsApp",
+      "call": "Call",
+      "email": "Email",
+      "excellent": "Excellent",
+      "veryGood": "Very good",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "basedOn": "Based on {{count}} customer review",
+      "basedOnPlural": "Based on {{count}} customer reviews",
+      "review": "review",
+      "reviews_plural": "reviews"
+    },
+    "hours": {
+      "title": "Business Hours",
+      "subtitle": "Set your working hours. Visitors will see whether you're open right now, and your full weekly schedule on your profile.",
+      "closed": "Closed",
+      "to": "to",
+      "setOpen": "Set open",
+      "markClosed": "Mark closed",
+      "saveHours": "Save hours",
+      "saved": "✓ Saved",
+      "saveFailed": "Failed to save hours",
+      "days": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      },
+      "daysShort": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "openNow": "Open now",
+      "closedNow": "Closed now",
+      "closedToday": "Closed today",
+      "closesAt": "Closes {{time}}",
+      "opensAt": "Opens at {{time}}",
+      "opensTomorrow": "Opens tomorrow at {{time}}",
+      "opensOn": "Opens {{day}} at {{time}}",
+      "today": "Today",
+      "tomorrow": "tomorrow",
+      "sectionTitle": "Availability",
+      "about": "About",
+      "location": "Location",
+      "contact": "Contact",
+      "getDirections": "Get directions"
+    },
+    "services": {
+      "title": "Services",
+      "addService": "Add service",
+      "editService": "Edit service",
+      "deleteService": "Delete service",
+      "noServices": "No services yet",
+      "noServicesDesc": "Add the services you offer so visitors know what you do.",
+      "nameLabel": "Service name",
+      "descLabel": "Description",
+      "priceLabel": "Price",
+      "durationLabel": "Duration",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this service?",
+      "deleted": "Service deleted",
+      "saved": "Service saved",
+      "availability": {
+        "AVAILABLE": "Available",
+        "UNAVAILABLE": "Unavailable",
+        "BY_APPOINTMENT": "By Appointment"
+      },
+      "availabilityLabel": "Availability",
+      "pricingType": {
+        "FIXED": "Fixed price",
+        "STARTING_FROM": "Starting from",
+        "HOURLY": "Per hour",
+        "NEGOTIABLE": "Negotiable",
+        "CONTACT_FOR_PRICE": "Contact for price"
+      },
+      "contactForPrice": "Contact for price",
+      "from": "From ",
+      "perHour": "/hr",
+      "negotiable": " (negotiable)",
+      "serviceTitleLabel": "Service Title",
+      "serviceTitlePlaceholder": "e.g. Web Development",
+      "descriptionPlaceholder": "Describe what this service includes...",
+      "startingPrice": "Starting Price",
+      "currency": "Currency",
+      "pricingTypeLabel": "Pricing Type",
+      "serviceLocation": "Service Location",
+      "serviceLocationHint": "Pre-filled from your profile. Edit if this service is at a different location.",
+      "serviceLocationPlaceholder": "Gondar / Remote",
+      "tagsLabel": "Tags",
+      "tagsHint": "Comma-separated, e.g. web, react, design",
+      "tagsPlaceholder": "web, react, design",
+      "published": "Published",
+      "featured": "Featured",
+      "saveService": "Save service",
+      "addImage": "Add image",
+      "servicesCount": "{{count}} services",
+      "noImagesYet": "No images yet",
+      "uploadImages": "Upload images"
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "addItem": "Add item",
+      "noItems": "No portfolio items yet",
+      "noItemsDesc": "Showcase your work by adding portfolio items.",
+      "titleLabel": "Title",
+      "descLabel": "Description",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this item?",
+      "deleted": "Item deleted"
+    },
+    "posts": {
+      "title": "Posts & Updates",
+      "addPost": "Add post",
+      "noPost": "No posts yet",
+      "noPostDesc": "Share updates with your audience.",
+      "titleLabel": "Title",
+      "bodyLabel": "Content",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this post?",
+      "deleted": "Post deleted"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "addAchievement": "Add achievement",
+      "noAchievements": "No achievements yet",
+      "noAchievementsDesc": "List your certifications, awards, or accomplishments.",
+      "titleLabel": "Title",
+      "descLabel": "Description",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this achievement?",
+      "deleted": "Achievement deleted"
+    },
+    "social": {
+      "title": "Social Links",
+      "addLink": "Add link",
+      "noLinks": "No social links yet",
+      "noLinksDesc": "Add your social media profiles so visitors can follow you.",
+      "platformLabel": "Platform",
+      "urlLabel": "URL",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete this link?",
+      "deleted": "Link deleted"
+    }
+  },
+
+  "pricing": {
+    "title": "Simple, honest pricing",
+    "subtitle": "Start free and grow. Every plan gives you a full public profile — upgrade when you need more reach or visibility.",
+    "currency": "All prices in Ethiopian Birr · Billed monthly",
+    "free": "Free",
+    "forever": "Forever",
+    "billedMonthly": "Billed monthly",
+    "currentPlan": "Current plan",
+    "upgrade": "Upgrade to {{plan}}",
+    "getStarted": "Get started",
+    "getStartedFree": "Get started free",
+    "yourDefaultPlan": "Your default plan",
+    "mostPopular": "Most popular",
+    "bestForBusiness": "Best for businesses",
+    "etbPerMonth": "ETB/mo",
+    "featureComparison": "Full feature comparison",
+    "feature": "Feature",
+    "features": {
+      "publicProfile": "Public profile",
+      "servicesListed": "Services you can list",
+      "portfolioItems": "Portfolio items",
+      "posts": "Posts & updates",
+      "galleryPhotos": "Gallery photos",
+      "socialLinks": "Social media links",
+      "businessHours": "Business hours",
+      "contactButton": "Contact & WhatsApp button",
+      "featuredSearch": "Featured in search results",
+      "topPlacement": "Top placement in search",
+      "verifiedBadge": "Verified badge eligible",
+      "reviews": "Reviews & ratings",
+      "mapPin": "Map pin location"
+    },
+    "planHighlights": {
+      "FREE": {
+        "0": "Full public profile",
+        "1": "Up to 3 services",
+        "2": "Contact & social links",
+        "3": "Reviews & ratings"
+      },
+      "BASIC": {
+        "0": "Everything in Free",
+        "1": "Up to 10 services",
+        "2": "10 portfolio items",
+        "3": "All social links"
+      },
+      "PRO": {
+        "0": "Everything in Basic",
+        "1": "Featured in search results",
+        "2": "Verified badge eligible",
+        "3": "50 services & portfolio"
+      },
+      "BUSINESS": {
+        "0": "Everything in Pro",
+        "1": "Top placement in search",
+        "2": "Unlimited everything",
+        "3": "Priority verification"
+      }
+    },
+    "faq": {
+      "cancel_q": "Can I cancel anytime?",
+      "cancel_a": "Yes. Your plan stays active until the end of the billing period. No long-term contracts or penalties.",
+      "payment_q": "What payment methods?",
+      "payment_a": "Telebirr, CBE Birr, Amole, and all major Ethiopian payment methods via Chapa.",
+      "downgrade_q": "What happens when I downgrade?",
+      "downgrade_a": "You keep access until the billing period ends. After that, your content is preserved but hidden if it exceeds Free plan limits."
+    }
+  },
+
+  "admin": {
+    "title": "Admin",
+    "overview": "Overview",
+    "users": "Users",
+    "ads": "Advertisements",
+    "categories": "Categories",
+    "subscriptions": "Subscriptions",
+    "revenue": "Revenue",
+    "analytics": "Analytics",
+    "plans": "Plans",
+    "platformHealth": "Platform health and key metrics at a glance.",
+    "sections": {
+      "users": "Users",
+      "revenueAndSubs": "Revenue & Subscriptions",
+      "advertisements": "Advertisements",
+      "catalogueAlerts": "Catalogue & Alerts",
+      "manage": "Manage"
+    },
+    "stats": {
+      "totalUsers": "Total users",
+      "thisWeek": "+{{count}} this week",
+      "active": "Active",
+      "suspended": "Suspended",
+      "new30Days": "New (30 days)",
+      "totalRevenue": "Total revenue",
+      "payments": "{{count}} payments",
+      "thisMonth": "This month",
+      "currentMonth": "current calendar month",
+      "activeSubs": "Active subscriptions",
+      "paidPlans": "paid plans",
+      "pendingPayments": "Pending payments",
+      "totalAds": "Total",
+      "publishedAds": "Published",
+      "draftAds": "Draft",
+      "pausedAds": "Paused",
+      "expiredAds": "Expired",
+      "archivedAds": "Archived",
+      "newAds7d": "New ads (7 days)",
+      "expiredSubs": "Expired subscriptions",
+      "failedPayments": "Failed payments",
+      "categories": "Categories",
+      "totalCategories": "{{count}} total"
+    },
+    "manage": {
+      "userManagement": "User Management",
+      "userManagementDesc": "View, search, suspend or promote users",
+      "adModeration": "Advertisement Moderation",
+      "adModerationDesc": "Review and moderate all listings",
+      "categoriesDesc": "Create, edit, and toggle categories",
+      "subscriptionsDesc": "All user subscription records",
+      "revenueDesc": "Payment records and revenue breakdown",
+      "analyticsDesc": "Platform trends and usage charts"
+    },
+    "loadFailed": "Failed to load dashboard statistics.",
+    "totalUsers": "total users",
+    "published": "published",
+    "activeLabel": "active"
+  },
+
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "submit": "Submit",
+    "send": "Send",
+    "notFound": "Page not found",
+    "notFoundDesc": "The page you're looking for doesn't exist.",
+    "goHome": "Go home",
+    "or": "or",
+    "and": "and",
+    "more": "More",
+    "less": "Less",
+    "unlimited": "Unlimited",
+    "all": "All",
+    "none": "None",
+    "open": "Open",
+    "closed": "Closed",
+    "gettingLocation": "Getting location…",
+    "gpsNotAvailable": "GPS not available",
+    "verifyEmail": {
+      "title": "Verify your email",
+      "success": "Email verified! Your account is now active.",
+      "failed": "Verification failed. The link may have expired.",
+      "resend": "Resend verification email"
+    },
+    "subscription": {
+      "successTitle": "Subscription activated!",
+      "successDesc": "Your plan is now active. Go to your dashboard to get started.",
+      "backToDashboard": "Go to dashboard"
+    },
+    "paymentCallback": {
+      "processing": "Processing your payment…",
+      "success": "Payment successful!",
+      "failed": "Payment failed.",
+      "retry": "Try again"
+    }
+  },
+
+  "about": {
+    "title": "About us",
+    "subtitle": "Ethiopia's discovery platform — connecting skilled people, businesses, and services with the people who need them.",
+    "mission": {
+      "heading": "Our mission",
+      "body": "GebetaPro was built to make it easier for talented individuals and growing businesses across Ethiopia to get discovered. Whether you are a freelancer, a shop owner, or running a large enterprise, we give you a professional profile that puts you in front of the right audience."
+    },
+    "story": {
+      "heading": "Our story",
+      "body": "We started with a simple observation: finding reliable local services in Ethiopia was still largely word-of-mouth. GebetaPro changes that by building a structured, searchable directory that works for everyone — from Addis Ababa to Hawassa, Gondar to Bahir Dar."
+    },
+    "platform": {
+      "heading": "What we offer",
+      "item1": "Free and premium business profiles",
+      "item2": "Category and location-based discovery",
+      "item3": "Interactive map view of listings",
+      "item4": "Portfolio, services, products, and business hours",
+      "item5": "Flexible subscription plans for increased visibility"
+    },
+    "contact": {
+      "heading": "Get in touch",
+      "body": "Have questions or want to partner with us?",
+      "link": "Contact our team"
+    }
+  },
+
+  "contact": {
+    "title": "Contact us",
+    "subtitle": "Have a question, feedback, or a partnership idea? We'd love to hear from you.",
+    "formLabel": "Contact form",
+    "info": {
+      "email": "Email",
+      "location": "Location",
+      "response": "Response time",
+      "responseBody": "We typically reply within 1–2 business days."
+    },
+    "form": {
+      "name": "Your name",
+      "namePlaceholder": "e.g. Natnael Berhanu",
+      "email": "Email address",
+      "subject": "Subject",
+      "subjectPlaceholder": "What is this about?",
+      "message": "Message",
+      "messagePlaceholder": "Tell us how we can help…",
+      "submit": "Send message"
+    },
+    "errors": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "messageRequired": "Message is required"
+    },
+    "success": {
+      "title": "Message sent!",
+      "body": "Thanks for reaching out. We'll get back to you soon."
+    }
+  },
+
+  "privacy": {
+    "title": "Privacy policy",
+    "lastUpdated": "Last updated",
+    "intro": "GebetaPro (\"we\", \"us\", or \"our\") operates the GebetaPro platform. This Privacy Policy explains how we collect, use, and protect your personal information when you use our services.",
+    "collect": {
+      "heading": "1. Information we collect",
+      "intro": "We collect information you provide directly to us, including:",
+      "item1": "Account registration details (name, email address, password)",
+      "item2": "Profile information (business name, description, phone number, location, images)",
+      "item3": "Payment information processed securely through our payment provider",
+      "item4": "Communications you send us",
+      "auto": "We also collect certain information automatically, such as your IP address, browser type, and pages visited, to operate and improve our platform."
+    },
+    "use": {
+      "heading": "2. How we use your information",
+      "item1": "To create and manage your account and profile",
+      "item2": "To process subscription payments",
+      "item3": "To display your profile to other users in the directory",
+      "item4": "To send transactional emails (verification, password reset, receipts)",
+      "item5": "To improve platform features and user experience",
+      "item6": "To comply with legal obligations"
+    },
+    "share": {
+      "heading": "3. Sharing of information",
+      "body": "We do not sell your personal data. We may share information with trusted service providers who assist us in operating the platform (e.g. payment processors, email delivery services), subject to strict confidentiality obligations. We may also disclose information when required by law."
+    },
+    "public": {
+      "heading": "4. Public profile data",
+      "body": "Information you add to your public profile — such as your business name, description, location, phone number, services, and images — is visible to all visitors of the platform. Be mindful of what you choose to publish."
+    },
+    "security": {
+      "heading": "5. Data security",
+      "body": "We implement industry-standard security measures to protect your data, including encrypted connections (HTTPS) and secure password hashing. No method of transmission over the internet is 100% secure, so we cannot guarantee absolute security."
+    },
+    "rights": {
+      "heading": "6. Your rights",
+      "intro": "You have the right to:",
+      "item1": "Access and update your personal information via your dashboard",
+      "item2": "Request deletion of your account and associated data",
+      "item3": "Opt out of marketing communications at any time",
+      "contact": "To exercise these rights, please",
+      "contactLink": "contact us"
+    },
+    "contact": {
+      "heading": "7. Contact",
+      "body": "If you have questions about this Privacy Policy, reach us at"
+    }
+  },
+
+  "terms": {
+    "title": "Terms of service",
+    "lastUpdated": "Last updated",
+    "intro": "By accessing or using GebetaPro, you agree to be bound by these Terms of Service. Please read them carefully. If you do not agree, do not use the platform.",
+    "accounts": {
+      "heading": "1. Accounts",
+      "body": "You must provide accurate and complete information when creating an account. You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account. Notify us immediately if you suspect unauthorised access."
+    },
+    "content": {
+      "heading": "2. User content",
+      "body": "You retain ownership of content you post on GebetaPro. By posting, you grant us a non-exclusive, worldwide, royalty-free licence to display that content as part of operating the platform.",
+      "responsibility": "You are solely responsible for ensuring your content:",
+      "item1": "Is accurate and not misleading",
+      "item2": "Does not infringe any third-party intellectual property rights",
+      "item3": "Does not contain offensive, illegal, or harmful material"
+    },
+    "prohibited": {
+      "heading": "3. Prohibited conduct",
+      "intro": "You agree not to:",
+      "item1": "Use the platform for any unlawful purpose",
+      "item2": "Post false, fraudulent, or impersonated profiles",
+      "item3": "Attempt to gain unauthorised access to any part of the platform",
+      "item4": "Scrape or harvest data without our written permission",
+      "item5": "Interfere with or disrupt the platform or servers"
+    },
+    "subscriptions": {
+      "heading": "4. Subscriptions and payments",
+      "body": "Some features require a paid subscription. All fees are stated in Ethiopian Birr (ETB) unless otherwise noted. Payments are processed through our third-party payment provider. Subscription fees are non-refundable except where required by applicable law."
+    },
+    "termination": {
+      "heading": "5. Termination",
+      "body": "We reserve the right to suspend or terminate accounts that violate these Terms or that we reasonably believe pose a risk to the platform or other users. You may delete your account at any time from your dashboard."
+    },
+    "disclaimer": {
+      "heading": "6. Disclaimer of warranties",
+      "body": "GebetaPro is provided on an \"as is\" and \"as available\" basis without warranties of any kind, express or implied. We do not guarantee that the platform will be uninterrupted, error-free, or free of viruses or other harmful components."
+    },
+    "liability": {
+      "heading": "7. Limitation of liability",
+      "body": "To the fullest extent permitted by law, GebetaPro shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the platform."
+    },
+    "changes": {
+      "heading": "8. Changes to these terms",
+      "body": "We may update these Terms from time to time. We will notify you of material changes via email or a prominent notice on the platform. Continued use after changes take effect constitutes acceptance of the updated Terms."
+    },
+    "contact": {
+      "heading": "9. Contact",
+      "body": "For questions about these Terms, please",
+      "contactLink": "contact us"
+    }
+  },
+
+  "common": {
+    "home": "Home"
+  }
+}
