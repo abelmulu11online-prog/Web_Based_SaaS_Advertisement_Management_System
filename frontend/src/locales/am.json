@@ -1,0 +1,953 @@
+{
+  "lang": {
+    "en": "English",
+    "am": "አማርኛ",
+    "select": "ቋንቋ"
+  },
+
+  "nav": {
+    "discover": "ፈልግ",
+    "map": "ካርታ",
+    "pricing": "ዋጋ",
+    "dashboard": "ዳሽቦርድ",
+    "login": "ግባ",
+    "getStarted": "ጀምር",
+    "getStartedFree": "ነጻ ጀምር",
+    "logout": "ውጣ",
+    "openMenu": "ምናሌ ክፈት",
+    "closeMenu": "ምናሌ ዝጋ",
+    "search": "ፈልግ…",
+    "logoLabel": "GebetaPro — ወደ መነሻ ሂድ"
+  },
+
+  "footer": {
+    "tagline": "የኢትዮጵያ የፍለጋ መድረክ። ብቁ ሰዎችን፣ ንግዶችን እና አገልግሎቶችን አቅራቢያህ ፈልግ።",
+    "location": "አዲስ አበባ፣ ኢትዮጵያ",
+    "rights": "© {{year}} GebetaPro. መብቱ በሕግ የተጠበቀ ነው።",
+    "privacy": "ግላዊነት",
+    "terms": "ውሎች",
+    "builtIn": "በኢትዮጵያ ተሰርቷል",
+    "groups": {
+      "discover": "ፈልግ",
+      "advertise": "አስተዋውቅ",
+      "company": "ኩባንያ"
+    },
+    "links": {
+      "browseDirectory": "ማውጫ ዳስስ",
+      "freelancers": "ፍሪላንሰሮች",
+      "shops": "ሱቆች",
+      "businesses": "ንግዶች",
+      "mapView": "የካርታ እይታ",
+      "createProfile": "መገለጫ ፍጠር",
+      "pricingPlans": "የዋጋ እቅዶች",
+      "myDashboard": "ዳሽቦርዴ",
+      "editProfile": "መገለጫ አርትዕ",
+      "aboutUs": "ስለ እኛ",
+      "contact": "ያግኙን",
+      "privacyPolicy": "የግላዊነት ፖሊሲ",
+      "termsOfService": "የአገልግሎት ውሎች"
+    }
+  },
+
+  "home": {
+    "eyebrow": "የኢትዮጵያ የፍለጋ መድረክ",
+    "heroTitle1": "ትክክለኛውን",
+    "heroTitle2": "ሰዎች እና ንግዶች",
+    "heroTitle3": "አቅራቢያህ ፈልግ።",
+    "heroSub1": "ባለሙያዎች፣ ሱቆች፣ አገልግሎቶች እና ፍሪላንሰሮች —",
+    "heroSub1Brand": "ሁሉም በአንድ ቦታ።",
+    "heroSub2": "በስም፣ ምድብ ወይም አካባቢ ፈልግ",
+    "popular": "ታዋቂ",
+    "searchPlaceholder": "ማንን ወይም ምን እየፈለጉ ነዎት?",
+    "clearSearch": "ፍለጋ አጥፋ",
+    "locationPlaceholder": "ከተማ ወይም አካባቢ",
+    "searchBtn": "ፈልግ",
+    "browseByType": "በዓይነት ዳስስ",
+    "whatLookingFor": "ምን እየፈለጉ ነዎት?",
+    "viewAll": "ሁሉ ይመልከቱ",
+    "viewAllCategories": "ሁሉም ምድቦች",
+    "featuredListings": "ተለይተው የቀረቡ",
+    "peopleMakingThings": "ሥራ የሚሠሩ ሰዎች",
+    "seeAll": "ሁሉ ይመልከቱ",
+    "seeAllListings": "ሁሉም ማስታወቂያዎች",
+    "noListingsYet": "እስካሁን ምንም ማስታወቂያ የለም",
+    "beFirst": "በ GebetaPro ላይ እራስዎን ለማስተዋወቅ ፊተኛ ይሁኑ።",
+    "byLocation": "በአካባቢ",
+    "exploreCity": "ከተማዎን ያስሱ",
+    "locationDesc": "GebetaPro ብቁ ሰዎችን እና በኢትዮጵያ ውስጥ ካሉ ዋና ዋና ከተሞች ጋር ያገናኝዎታል።",
+    "browseAllLocations": "ሁሉም አካባቢዎችን ዳስስ",
+    "mapDiscovery": "የካርታ ፍለጋ",
+    "seeWhoAround": "አቅራቢያህ ያሉትን ይመልከቱ፣",
+    "onTheMap": "ካርታ ላይ።",
+    "mapDesc": "በኢትዮጵያ ኢንተራክቲቭ ካርታ ላይ የተቀመጡ ንግዶችን፣ ባለሙያዎችን እና አገልግሎቶችን ይዳስሱ።",
+    "openMapView": "የካርታ እይታ ክፈት",
+    "whyTitle": "ለምን GebetaPro?",
+    "whySub": "ለኢትዮጵያ ብቁ ሰዎች፣ ንግዶች እና አገልግሎቶች አንድ ቦታ።",
+    "getDiscoveredTitle": "ለመታወቅ ዝግጁ ነዎት?",
+    "getDiscoveredSub": "ዛሬ ነጻ መገለጫ ይፍጠሩ — ክሬዲት ካርድ አያስፈልግም።",
+    "startFreeProfile": "ነጻ መገለጫ ጀምሩ",
+    "browseDirectory": "ማውጫ ዳስሱ",
+    "cities": {
+      "addisAbaba": "አዲስ አበባ",
+      "addisAbabaSub": "ዋና ከተማ · ብዙ ማስታወቂያ",
+      "gondar": "ጎንደር",
+      "gondarSub": "ሰሜን ኢትዮጵያ",
+      "hawassa": "ሐዋሳ",
+      "hawassaSub": "ደቡብ ኢትዮጵያ",
+      "bahirDar": "ባህር ዳር",
+      "bahirDarSub": "አማራ ክልል",
+      "mekelle": "መቐለ",
+      "mekelleSub": "ትግራይ ክልል",
+      "direDawa": "ድሬ ዳዋ",
+      "direDawaSub": "ምስራቅ ኢትዮጵያ",
+      "jimma": "ጅማ",
+      "jimmaSub": "ኦሮሚያ ክልል",
+      "adama": "አዳማ",
+      "adamaSub": "ኦሮሚያ ክልል"
+    },
+    "popularSearches": {
+      "electrician": "ኤሌክትሪሽያን",
+      "plumber": "ቧንቧ ሠራተኛ",
+      "lawyer": "ጠበቃ",
+      "restaurant": "ሬስቶራንት",
+      "photographer": "ፎቶግራፈር",
+      "tutor": "አስተማሪ",
+      "doctor": "ዶክተር",
+      "driver": "አሽከርካሪ"
+    }
+  },
+
+  "directory": {
+    "title": "ማውጫ",
+    "findAnyone": "በኢትዮጵያ ማንንም ፈልጉ",
+    "searchPlaceholder": "ኤሌክትሪሽያን፣ ሬስቶራንት፣ ጠበቃ፣ ሱቅ…",
+    "locationPlaceholder": "ከተማ ወይም አካባቢ",
+    "countryPlaceholder": "ሀገር",
+    "searchBtn": "ፈልግ",
+    "clearSearch": "ፍለጋ አጥፋ",
+    "filters": "ማጣሪያዎች",
+    "activeFilters": "ንቁ ማጣሪያዎች",
+    "clearAll": "ሁሉ አጥፋ",
+    "clearAllFilters": "ሁሉም ማጣሪያዎች አጥፋ",
+    "remove": "አስወግድ",
+    "recommended": "የሚመከር",
+    "highestRated": "ከፍተኛ ደረጃ",
+    "newest": "አዲስ",
+    "gridView": "ግሪድ እይታ",
+    "listView": "ዝርዝር እይታ",
+    "openMap": "ካርታ ክፈት",
+    "results": "ውጤቶች",
+    "result": "ውጤት",
+    "verified": "የተረጋገጠ",
+    "verifiedOnly": "የተረጋገጡ ብቻ",
+    "useMyLocation": "አካባቢዬን ተጠቀም",
+    "locationSet": "አካባቢ ተቀናብሯል ✓",
+    "clearLocation": "አካባቢ አጥፋ",
+    "nearMe": "አቅራቢዬ",
+    "filterGroups": {
+      "nearMe": "አቅራቢዬ",
+      "category": "ምድብ",
+      "location": "አካባቢ",
+      "type": "ዓይነት",
+      "trust": "እምነት"
+    },
+    "allCategories": "ሁሉም ምድቦች",
+    "allTypes": "ሁሉም ዓይነቶች",
+    "profileTypes": {
+      "PROFESSIONAL": "ባለሙያ",
+      "FREELANCER": "ፍሪላንሰር",
+      "BUSINESS": "ንግድ",
+      "SHOP": "ሱቅ",
+      "COMPANY": "ኩባንያ",
+      "ORGANIZATION": "ድርጅት",
+      "PERSONAL": "ግለሰብ"
+    },
+    "sort": "አስቀምጥ",
+    "applyFilters": "ማጣሪያ ተግብር",
+    "empty": {
+      "noResults": "ለ \"{{search}}\" ምንም ውጤት አልተገኘም",
+      "noProfiles": "ምንም መገለጫ አልተገኘም",
+      "noResultsLocation": "\"{{search}}\" ን በ {{location}} ውስጥ ማግኘት አልተቻለም። ሌላ አካባቢ ይሞክሩ።",
+      "noResultsCategory": "ለ \"{{search}}\" ምንም {{category}} ውጤት የለም። ምድቡን ያስወግዱ።",
+      "tryDifferent": "ሌሎች ቃላት ይሞክሩ፣ ወይም ያለ ፍለጋ ያስሱ።",
+      "removeFilters": "ተጨማሪ ውጤቶችን ለማየት ማጣሪያዎቹን ያስወግዱ።",
+      "clearSearch": "ፍለጋ አጥፋ",
+      "removeLocation": "አካባቢ አስወግድ"
+    },
+    "pagination": {
+      "previous": "ቀዳሚ ገጽ",
+      "next": "ቀጣይ ገጽ"
+    }
+  },
+
+  "auth": {
+    "login": {
+      "title": "እንኳን ተመለሱ",
+      "newAccount": "አዲስ ወደ GebetaMarket?",
+      "createFree": "ነጻ መለያ ፍጠር",
+      "emailLabel": "የኢሜይል አድራሻ",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "የሚስጥር ቃል",
+      "passwordPlaceholder": "የሚስጥር ቃልዎ",
+      "forgotPassword": "የሚስጥር ቃል ረሱ?",
+      "loginBtn": "ግባ",
+      "termsNotice": "ቀጥሎ በመሄድ ከዚህ ጋር ተስማምተዋል",
+      "terms": "ውሎቻችን",
+      "and": "እና",
+      "privacyPolicy": "የግላዊነት ፖሊሲ",
+      "emailVerified": "ኢሜይል ተረጋግጧል!",
+      "accountActive": "መለያዎ ንቁ ነው — ከዚህ ቀጥሎ ይግቡ።",
+      "resendVerification": "የማረጋገጫ ኢሜይል ደግሞ ላክ",
+      "sending": "እየተላከ ነው…",
+      "verificationSent": "✓ የማረጋገጫ ኢሜይል ተልኳል — ሳጥንዎን ይፈትሹ።",
+      "emailRequired": "ኢሜይልና የሚስጥር ቃል ያስፈልጋሉ።"
+    },
+    "register": {
+      "title": "መለያ ፍጠሩ",
+      "hasAccount": "አስቀድሞ መለያ አለዎት?",
+      "loginLink": "ግባ",
+      "emailLabel": "የኢሜይል አድራሻ",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "የሚስጥር ቃል",
+      "passwordPlaceholder": "ጠንካራ የሚስጥር ቃል ፍጠሩ",
+      "confirmLabel": "የሚስጥር ቃል አረጋግጥ",
+      "confirmPlaceholder": "የሚስጥር ቃልዎን ይድገሙ",
+      "createBtn": "መለያ ፍጠር",
+      "verifyNote": "ከመግባትዎ በፊት ኢሜይልዎን ማረጋገጥ ያስፈልጋል።",
+      "emailRequired": "ኢሜይል ያስፈልጋል።",
+      "passwordRequired": "የሚስጥር ቃል ያስፈልጋል።",
+      "passwordWeak": "የሚስጥር ቃሉ ሁሉ መስፈርቶቹን አያሟላም።",
+      "passwordMismatch": "የሚስጥር ቃሎቹ አይዛምዱም።",
+      "failed": "ምዝገባ አልተሳካም። እንደገና ይሞክሩ።",
+      "rules": {
+        "length": "ቢያንስ 8 ቁምፊዎች",
+        "uppercase": "ትልቅ ፊደል",
+        "number": "ቁጥር",
+        "special": "ልዩ ምልክት"
+      },
+      "checkInbox": "ሳጥንዎን ፈትሹ",
+      "sentTo": "የማረጋገጫ ማስፈንጠሪያ ተልኳል ወደ",
+      "clickLink": "መለያዎን ለማነቃቃት በኢሜይሉ ውስጥ ያለውን ማስፈንጠሪያ ይጫኑ። ማስፈንጠሪያው ከ24 ሰዓት በኋላ ያልቃል።",
+      "resend": "አልደረሰዎትም? ደግሞ ላክ",
+      "resentSuccess": "ተልኳል! ሳጥንዎን ደግሞ ፈትሹ።",
+      "cantFind": "ኢሜይሉን ማግኘት አልቻሉም?",
+      "tips": {
+        "spam": "ጃንክ ወይም ስፓም ፎልደርዎን ፈትሹ",
+        "email": "ትክክለኛ ኢሜይል አድራሻ እንደገቡ ያረጋግጡ",
+        "wait": "ትንሽ ይጠብቁ — አንዳንዴ ትንሽ ጊዜ ይፈጃል"
+      },
+      "alreadyVerified": "አስቀድሞ ተረጋግጧል?",
+      "showPass": "የሚስጥር ቃል አሳይ",
+      "hidePass": "የሚስጥር ቃል ደብቅ"
+    },
+    "forgot": {
+      "title": "የሚስጥር ቃልዎን ረሱ?",
+      "subtitle": "የኢሜይል አድራሻዎን ያስገቡ፤ የሚስጥር ቃል ዳግም ማስጀመሪያ ማስፈንጠሪያ እንልክሎታለን።",
+      "emailLabel": "የኢሜይል አድራሻ",
+      "emailPlaceholder": "you@example.com",
+      "sendBtn": "ዳግም ማስጀመሪያ ማስፈንጠሪያ ላክ",
+      "backToLogin": "ወደ ግባ ተመለስ",
+      "checkInbox": "ሳጥንዎን ፈትሹ",
+      "sentMsg": "{{email}} ከ GebetaPro መለያ ጋር የተያያዘ ከሆነ የሚስጥር ቃል ዳግም ማስጀመሪያ ማስፈንጠሪያ ይደርስዎታል።",
+      "linkExpires": "ማስፈንጠሪያው ከ1 ሰዓት በኋላ ያልቃል። ካላዩ ስፓም ፎልደርዎን ይፈትሹ።",
+      "tryAgain": "አልደረሰዎትም? እንደገና ይሞክሩ",
+      "emailInvalid": "ትክክለኛ ኢሜይል አድራሻ ያስገቡ።",
+      "emailEmpty": "ኢሜይል አድራሻዎን ያስገቡ።",
+      "serverError": "ስህተት ተፈጥሯል። ትንሽ ቆይተው ይሞክሩ።"
+    },
+    "reset": {
+      "title": "አዲስ የሚስጥር ቃል ያዘጋጁ",
+      "subtitle": "ለመለያዎ ጠንካራ አዲስ የሚስጥር ቃል ይምረጡ።",
+      "newPasswordLabel": "አዲስ የሚስጥር ቃል",
+      "newPasswordPlaceholder": "ጠንካራ የሚስጥር ቃል ፍጠሩ",
+      "confirmLabel": "አዲስ የሚስጥር ቃል አረጋግጥ",
+      "confirmPlaceholder": "አዲሱን የሚስጥር ቃልዎን ይድገሙ",
+      "resetBtn": "የሚስጥር ቃል ዳግም አስጀምር",
+      "success": "የሚስጥር ቃል ዳግም ተጀምሯል! አሁን መግባት ይችላሉ።",
+      "loginBtn": "ወደ ግባ ሂድ",
+      "invalidToken": "ይህ ዳግም ማስጀመሪያ ማስፈንጠሪያ ልክ ያልሆነ ወይም ጊዜው ያለፈ ነው።",
+      "requestNew": "አዲስ ማስፈንጠሪያ ጠይቅ",
+      "failed": "የሚስጥር ቃሉን ዳግም ማስጀምር አልተሳካም። ማስፈንጠሪያው ሊያልቅ ይችላል።"
+    },
+    "verify": {
+      "verifying": "ኢሜይልዎ እየተረጋገጠ ነው…",
+      "success": "ኢሜይል ተረጋግጧል!",
+      "successMsg": "መለያዎ አሁን ንቁ ነው።",
+      "loginBtn": "አሁን ግባ",
+      "failed": "ማረጋገጥ አልተሳካም",
+      "failedMsg": "ይህ ማስፈንጠሪያ ሊያልቅ ወይም ቀድሞ ሊጠቀምበት ይችላል።",
+      "requestNew": "አዲስ የማረጋገጫ ኢሜይል ጠይቅ"
+    }
+  },
+
+  "dashboard": {
+    "title": "ዳሽቦርድ",
+    "overview": "አጠቃላይ",
+    "myProfile": "መገለጫዬ",
+    "subscription": "ምዝገባ",
+    "welcome": "እንኳን ደህና መጡ፣ {{name}}",
+    "yourPresence": "በማውጫ ላይ ያለ ሙያዊ ስምዎ።",
+    "viewProfile": "መገለጫ ይመልከቱ",
+    "editProfile": "መገለጫ አርትዕ",
+    "profileComplete": "መገለጫ {{score}}% ተጠናቅቋል",
+    "fullyComplete": "መገለጫዎ ሙሉ በሙሉ ተጠናቅቋል!",
+    "rankHigher": "ከፍ ለሚሉ የፍለጋ ውጤቶች መገለጫዎን ያሟሉ።",
+    "profileLive": "መገለጫዎ ቀጥሎ ነው",
+    "notPublished": "መገለጫ ገና አልታተመም",
+    "visitorsFind": "ጎብኚዎች ሊያገኙዎ እና ሊያናግሩዎ ይችላሉ።",
+    "publishNow": "🚀 አሁን አትም",
+    "unpublish": "አታትም",
+    "edit": "አርትዕ",
+    "publish": "ሰዎች እንዲያገኙዎ ያትሙ።",
+    "stats": {
+      "profileViews": "የመገለጫ ጉብኝቶች",
+      "contactClicks": "የዕውቂያ ጠቅታዎች",
+      "reviews": "ግምገማዎች",
+      "plan": "እቅድ",
+      "last30Days": "ባለፈው 30 ቀን"
+    },
+    "subscription": {
+      "daysRemaining": "{{days}} ቀናት ቀርቷቸዋል",
+      "expired": "ጊዜ አልፏል",
+      "upgrade": "ያሳድጉ →",
+      "manage": "ያስተዳድሩ →"
+    },
+    "manageProfile": "መገለጫዎን ያስተዳድሩ",
+    "quickActions": {
+      "editProfileInfo": "መገለጫ መረጃ አርትዕ",
+      "services": "አገልግሎቶች",
+      "portfolio": "ፖርትፎሊዮ",
+      "socialLinks": "ማህበራዊ ሚዲያ ማስፈንጠሪያዎች",
+      "businessHours": "የሥራ ሰዓቶች",
+      "posts": "ልጥፎች እና ዝማኔዎች",
+      "achievements": "ስኬቶች"
+    },
+    "loginRequired": "ዳሽቦርድዎን ለማየት መግባት ያስፈልጋል።",
+    "login": "ግባ",
+    "notifications": {
+      "title": "ማሳወቂያዎች",
+      "none": "እስካሁን ምንም ማሳወቂያ የለም",
+      "noneDesc": "ሰው መገለጫዎን ሲገመግም እናሳውቅዎታለን",
+      "markAllRead": "ሁሉንም እንደ ተነበበ ምልክት አድርግ",
+      "justNow": "አሁን ለቅቅ",
+      "mAgo": "ከ{{m}} ደቂቃ በፊት",
+      "hAgo": "ከ{{h}} ሰዓት በፊት",
+      "dAgo": "ከ{{d}} ቀን በፊት",
+      "moAgo": "ከ{{mo}} ወር በፊት"
+    },
+    "sidebar": {
+      "profileContent": "የመገለጫ ይዘት",
+      "services": "አገልግሎቶች",
+      "portfolio": "ፖርትፎሊዮ",
+      "socialLinks": "ማህበራዊ ሚዲያ",
+      "businessHours": "የሥራ ሰዓቶች",
+      "posts": "ልጥፎች",
+      "achievements": "ስኬቶች",
+      "logout": "ውጣ",
+      "menu": "ምናሌ"
+    }
+  },
+
+  "profile": {
+    "edit": {
+      "title": "መገለጫ አርትዕ",
+      "setupTitle": "መገለጫዎን ያዋቅሩ",
+      "createTitle": "የሕዝብ መገለጫ ፍጠሩ",
+      "createDesc": "መገለጫዎ የሕዝብ ገጽዎ ነው። ሰዎች ሊያገኙዎ እና ሊያናግሩዎ ይችላሉ።",
+      "nameLabel": "እርስዎ ወይም ንግድዎ ምን ይባሉ?",
+      "namePlaceholder": "ለምሳሌ ጎንደር ኤሌክትሮኒክስ፣ ናትናኤል በርሃኑ",
+      "urlLabel": "የሕዝብ URL",
+      "urlHint": "መገለጫዎ /@{{slug}} ላይ ይሆናል",
+      "urlTaken": "ይህ URL አስቀድሞ ተወሷል",
+      "urlTakenShort": "አስቀድሞ ተወሷል",
+      "urlPlaceholder": "ስምዎ",
+      "profileTypeLabel": "የመገለጫ ዓይነት",
+      "categoryLabel": "ምድብ",
+      "categoryHint": "ሰዎች በማውጫ ውስጥ የሚያገኙዎ እንዴት ነው",
+      "categoryPlaceholder": "— ምድብ ይምረጡ —",
+      "createBtn": "መገለጫ ፍጠር",
+      "createFailed": "መገለጫ መፍጠር አልተሳካም",
+      "basicInfo": "መሠረታዊ መረጃ",
+      "displayNameLabel": "የሚታይ ስም",
+      "displayNamePlaceholder": "ስምዎ ወይም የንግድ ስምዎ",
+      "headlineLabel": "አርዕስት",
+      "headlineHint": "አጭር መለያ ቃል (ቢበዛ 150 ቁምፊ)",
+      "headlinePlaceholder": "ለምሳሌ ሙሉ-ስቴክ ገንቢ · ፍሪላንስ · ጎንደር",
+      "descriptionLabel": "መግለጫ",
+      "descriptionPlaceholder": "ጎብኚዎቹ ማን እንደሆኑ እና ምን እንደሚያቀርቡ ይናገሩ...",
+      "profilePublic": "✅ መገለጫ ለሁሉ ይታያል",
+      "profileHidden": "🔒 መገለጫ ተደብቋል",
+      "profilePublicDesc": "ሰዎች በማውጫ ውስጥ ሊያገኙዎ ይችላሉ",
+      "profileHiddenDesc": "ቀጥሎ ይቀጣጠሉ ታናሽ ቁልፍ ይጫኑ",
+      "contactTitle": "ዕውቂያ",
+      "phoneLabel": "ስልክ",
+      "phonePlaceholder": "+251 9...",
+      "emailLabel": "ኢሜይል",
+      "emailPlaceholder": "you@example.com",
+      "whatsappLabel": "ዋትስአፕ",
+      "telegramLabel": "ቴሌግራም ስም",
+      "telegramPlaceholder": "@username",
+      "websiteLabel": "ድር ጣቢያ",
+      "websitePlaceholder": "https://yoursite.com",
+      "phoneVisibility": "የስልክ ታይነት",
+      "emailVisibility": "የኢሜይል ታይነት",
+      "locationTitle": "አካባቢ",
+      "locationDesc": "ካርታ ላይ አካባቢዎን ያሳዩ። ጎብኚዎቹ የት እንዳሉ ሊያዩ ይችላሉ።",
+      "countryLabel": "ሀገር",
+      "regionLabel": "ክልል / ግዛት",
+      "cityLabel": "ከተማ",
+      "cityHint": "ለከተማ ስም ፍለጋ ያገለግላል",
+      "areaLabel": "አካባቢ / ሰፈር",
+      "locationVisibility": "የአካባቢ ታይነት",
+      "locationVisibilityHint": "አካባቢዎ ለሕዝብ ምን ያህል ዝርዝር ሆኖ ይታያል",
+      "cityOnly": "ከተማ ብቻ — ከተማ ስም ብቻ",
+      "district": "ወረዳ — ከተማ + አካባቢ",
+      "full": "ሙሉ — ትክክለኛ ካርታ ፒን",
+      "saveChanges": "ለውጦች አስቀምጥ",
+      "savedSuccessfully": "በተሳካ ሁኔታ ተቀምጧል",
+      "saveFailed": "ለውጦችን ማስቀመጥ አልተሳካም",
+      "urlPlaceholderFull": "እንደ: platform.com/@{{slug}}",
+      "completionScore": "መገለጫ {{score}}% ተጠናቅቋል",
+      "changeCover": "ሽፋን ቀይር",
+      "removeCover": "ሽፋን አስወግድ",
+      "profileTypes": {
+        "PERSONAL": "ግለሰብ — ግላዊ",
+        "PROFESSIONAL": "ባለሙያ — ስፔሻሊስት",
+        "FREELANCER": "ፍሪላንሰር — ነጻ ሰራተኛ",
+        "SHOP": "ሱቅ — ችርቻሮ / ምርቶች",
+        "BUSINESS": "ንግድ — ኩባንያ / ተቋም",
+        "COMPANY": "ኩባንያ — ሕጋዊ ኩባንያ",
+        "ORGANIZATION": "ድርጅት — ኤንጂኦ / ማህበር"
+      },
+      "visibility": {
+        "PUBLIC": "ለሁሉ ይታያል",
+        "LOGGED_IN": "ለገቡ ተጠቃሚዎች ብቻ",
+        "HIDDEN": "ተደብቋል"
+      }
+    },
+    "public": {
+      "notFound": "መገለጫ አልተገኘም",
+      "notFoundDesc": "@{{slug}} መገለጫ የለም ወይም ገና ለሕዝብ አልታተመም።",
+      "browseDirectory": "ማውጫ ዳስስ",
+      "home": "መነሻ",
+      "directory": "ማውጫ",
+      "overview": "አጠቃላይ",
+      "services": "አገልግሎቶች",
+      "portfolio": "ፖርትፎሊዮ",
+      "updates": "ዝማኔዎች",
+      "achievements": "ስኬቶች",
+      "reviews": "ግምገማዎች",
+      "about": "ስለ",
+      "latestUpdates": "የቅርብ ዝማኔዎች",
+      "allServices": "ሁሉም {{count}} አገልግሎቶች",
+      "viewAll": "ሁሉ ይመልከቱ",
+      "seeAllUpdates": "ሁሉም ዝማኔዎች",
+      "seeAll": "ሁሉ ይመልከቱ",
+      "allReviews": "ሁሉም {{count}} ግምገማዎች",
+      "noServices": "እስካሁን ምንም አገልግሎት አልታተመም።",
+      "noPortfolio": "እስካሁን ምንም ፖርትፎሊዮ የለም።",
+      "noPosts": "እስካሁን ምንም ዝማኔ አልታተመም።",
+      "noAchievements": "እስካሁን ምንም ስኬት አልዘረዘሩም።",
+      "whatsapp": "ዋትስአፕ",
+      "call": "ደውሉ",
+      "email": "ኢሜይል",
+      "excellent": "እጅግ ጥሩ",
+      "veryGood": "በጣም ጥሩ",
+      "good": "ጥሩ",
+      "fair": "መካከለኛ",
+      "poor": "ደካማ",
+      "basedOn": "ከ{{count}} የደንበኛ ግምገማ ላይ ተመስርቶ",
+      "basedOnPlural": "ከ{{count}} የደንበኛ ግምገማዎች ላይ ተመስርቶ",
+      "review": "ግምገማ",
+      "reviews_plural": "ግምገማዎች"
+    },
+    "hours": {
+      "title": "የሥራ ሰዓቶች",
+      "subtitle": "የሥራ ሰዓቶቻዎን ያዘጋጁ። ጎብኚዎቹ አሁን ክፍት ስለሆኑ እና ሙሉ ሳምንታዊ ፕሮግራምዎን ይመለከታሉ።",
+      "closed": "ዝግ",
+      "to": "እስከ",
+      "setOpen": "ክፍት አድርግ",
+      "markClosed": "ዝጋ",
+      "saveHours": "ሰዓቶች አስቀምጥ",
+      "saved": "✓ ተቀምጧል",
+      "saveFailed": "ሰዓቶቹን ማስቀመጥ አልተሳካም",
+      "days": {
+        "0": "እሑድ",
+        "1": "ሰኞ",
+        "2": "ማክሰኞ",
+        "3": "ረቡዕ",
+        "4": "ሐሙስ",
+        "5": "ዓርብ",
+        "6": "ቅዳሜ"
+      },
+      "daysShort": {
+        "0": "እሑድ",
+        "1": "ሰኞ",
+        "2": "ማክ",
+        "3": "ረቡ",
+        "4": "ሐሙ",
+        "5": "ዓርብ",
+        "6": "ቅዳሜ"
+      },
+      "openNow": "አሁን ክፍት ነው",
+      "closedNow": "አሁን ዝግ ነው",
+      "closedToday": "ዛሬ ዝግ ነው",
+      "closesAt": "{{time}} ይዘጋል",
+      "opensAt": "{{time}} ላይ ይከፈታል",
+      "opensTomorrow": "ነገ {{time}} ላይ ይከፈታል",
+      "opensOn": "{{day}} {{time}} ላይ ይከፈታል",
+      "today": "ዛሬ",
+      "tomorrow": "ነገ",
+      "sectionTitle": "የሥራ ሰዓት",
+      "about": "ስለ",
+      "location": "አካባቢ",
+      "contact": "ዕውቂያ",
+      "getDirections": "አቅጣጫ ያግኙ"
+    },
+    "services": {
+      "title": "አገልግሎቶች",
+      "addService": "አገልግሎት ጨምር",
+      "editService": "አገልግሎት አርትዕ",
+      "deleteService": "አገልግሎት ሰርዝ",
+      "noServices": "እስካሁን ምንም አገልግሎት የለም",
+      "noServicesDesc": "ጎብኚዎቹ ምን እንደሚሠሩ እንዲያውቁ አገልግሎቶቻዎን ጨምሩ።",
+      "nameLabel": "የአገልግሎት ስም",
+      "descLabel": "መግለጫ",
+      "priceLabel": "ዋጋ",
+      "durationLabel": "ጊዜ",
+      "save": "አስቀምጥ",
+      "cancel": "ሰርዝ",
+      "confirmDelete": "ይህን አገልግሎት ሰርዝ?",
+      "deleted": "አገልግሎት ተሰርዟል",
+      "saved": "አገልግሎት ተቀምጧል",
+      "availability": {
+        "AVAILABLE": "ይገኛል",
+        "UNAVAILABLE": "አይገኝም",
+        "BY_APPOINTMENT": "በቀጠሮ ብቻ"
+      },
+      "availabilityLabel": "ተገኝነት",
+      "pricingType": {
+        "FIXED": "ቋሚ ዋጋ",
+        "STARTING_FROM": "ከ... ጀምሮ",
+        "HOURLY": "በሰዓት",
+        "NEGOTIABLE": "ሊደራደሩ ይችላሉ",
+        "CONTACT_FOR_PRICE": "ለዋጋ ያናግሩን"
+      },
+      "contactForPrice": "ለዋጋ ያናግሩን",
+      "from": "ከ ",
+      "perHour": "/ሰዓት",
+      "negotiable": " (ሊደራደሩ ይችላሉ)",
+      "serviceTitleLabel": "የአገልግሎት ርዕስ",
+      "serviceTitlePlaceholder": "ለምሳሌ ድር ልማት",
+      "descriptionPlaceholder": "ይህ አገልግሎት ምን ያካትታል ይግለጹ...",
+      "startingPrice": "መነሻ ዋጋ",
+      "currency": "ምንዛሪ",
+      "pricingTypeLabel": "የዋጋ አወሳሰን",
+      "serviceLocation": "የአገልግሎት አካባቢ",
+      "serviceLocationHint": "ከመገለጫዎ ተሞልቷል። ይህ አገልግሎት ሌላ ቦታ ከሆነ ያርትዑ።",
+      "serviceLocationPlaceholder": "ጎንደር / በርቀት",
+      "tagsLabel": "መለያዎች",
+      "tagsHint": "በኮማ የተለዩ፣ ለምሳሌ ድር፣ ሪአክት፣ ዲዛይን",
+      "tagsPlaceholder": "ድር፣ ሪአክት፣ ዲዛይን",
+      "published": "ታትሟል",
+      "featured": "ተለይቷል",
+      "saveService": "አገልግሎት አስቀምጥ",
+      "addImage": "ምስል ጨምር",
+      "servicesCount": "{{count}} አገልግሎቶች",
+      "noImagesYet": "እስካሁን ምንም ምስል የለም",
+      "uploadImages": "ምስሎችን ስቀል"
+    },
+    "portfolio": {
+      "title": "ፖርትፎሊዮ",
+      "addItem": "ንጥል ጨምር",
+      "noItems": "እስካሁን ምንም ፖርትፎሊዮ የለም",
+      "noItemsDesc": "የፖርትፎሊዮ ንጥሎችን በመጨመር ሥራዎን ያሳዩ።",
+      "titleLabel": "ርዕስ",
+      "descLabel": "መግለጫ",
+      "save": "አስቀምጥ",
+      "cancel": "ሰርዝ",
+      "confirmDelete": "ይህን ንጥል ሰርዝ?",
+      "deleted": "ንጥል ተሰርዟል"
+    },
+    "posts": {
+      "title": "ልጥፎች እና ዝማኔዎች",
+      "addPost": "ልጥፍ ጨምር",
+      "noPost": "እስካሁን ምንም ልጥፍ የለም",
+      "noPostDesc": "ለታዳሚዎቻዎ ዝማኔዎችን ያጋሩ።",
+      "titleLabel": "ርዕስ",
+      "bodyLabel": "ይዘት",
+      "save": "አስቀምጥ",
+      "cancel": "ሰርዝ",
+      "confirmDelete": "ይህን ልጥፍ ሰርዝ?",
+      "deleted": "ልጥፍ ተሰርዟል"
+    },
+    "achievements": {
+      "title": "ስኬቶች",
+      "addAchievement": "ስኬት ጨምር",
+      "noAchievements": "እስካሁን ምንም ስኬት የለም",
+      "noAchievementsDesc": "ሰርተፊኬቶቻዎን፣ ሽልማቶቻዎን ወይም ውጤቶቻዎን ዘርዝሩ።",
+      "titleLabel": "ርዕስ",
+      "descLabel": "መግለጫ",
+      "save": "አስቀምጥ",
+      "cancel": "ሰርዝ",
+      "confirmDelete": "ይህን ስኬት ሰርዝ?",
+      "deleted": "ስኬት ተሰርዟል"
+    },
+    "social": {
+      "title": "ማህበራዊ ሚዲያ ማስፈንጠሪያዎች",
+      "addLink": "ማስፈንጠሪያ ጨምር",
+      "noLinks": "እስካሁን ምንም ማስፈንጠሪያ የለም",
+      "noLinksDesc": "ሰዎች እንዲከተሉዎ ማህበራዊ ሚዲያ ፕሮፋይሎቻዎን ጨምሩ።",
+      "platformLabel": "መድረክ",
+      "urlLabel": "URL",
+      "save": "አስቀምጥ",
+      "cancel": "ሰርዝ",
+      "confirmDelete": "ይህን ማስፈንጠሪያ ሰርዝ?",
+      "deleted": "ማስፈንጠሪያ ተሰርዟል"
+    }
+  },
+
+  "pricing": {
+    "title": "ቀላልና ግልጽ ዋጋ",
+    "subtitle": "ነጻ ጀምሩ እና ያድጉ። እያንዳንዱ እቅድ ሙሉ የሕዝብ መገለጫ ይሰጥዎታል — ተጨማሪ ሽፋን ሲፈልጉ ያሳድጉ።",
+    "currency": "ሁሉም ዋጋዎች በኢትዮጵያ ብር · ወርሃዊ ክፍያ",
+    "free": "ነጻ",
+    "forever": "ለዘለዓለም",
+    "billedMonthly": "ወርሃዊ ክፍያ",
+    "currentPlan": "አሁን ያለ እቅድ",
+    "upgrade": "ወደ {{plan}} ያሳድጉ",
+    "getStarted": "ይጀምሩ",
+    "getStartedFree": "ነጻ ይጀምሩ",
+    "yourDefaultPlan": "ነባሪ እቅድዎ",
+    "mostPopular": "በጣም ታዋቂ",
+    "bestForBusiness": "ለንግድ ምርጥ",
+    "etbPerMonth": "ብር/ወር",
+    "featureComparison": "ሙሉ ባህሪ ማወዳደሪያ",
+    "feature": "ባህሪ",
+    "features": {
+      "publicProfile": "የሕዝብ መገለጫ",
+      "servicesListed": "መዘርዘር የሚችሉ አገልግሎቶች",
+      "portfolioItems": "የፖርትፎሊዮ ንጥሎች",
+      "posts": "ልጥፎች እና ዝማኔዎች",
+      "galleryPhotos": "የጋለሪ ፎቶዎች",
+      "socialLinks": "ማህበራዊ ሚዲያ ማስፈንጠሪያዎች",
+      "businessHours": "የሥራ ሰዓቶች",
+      "contactButton": "ዕውቂያ እና ዋትስአፕ ቁልፍ",
+      "featuredSearch": "በፍለጋ ውጤቶች ውስጥ ይታያሉ",
+      "topPlacement": "በፍለጋ ቀዳሚ ሥፍራ",
+      "verifiedBadge": "የተረጋገጠ ምልክት ዕጩ",
+      "reviews": "ግምገማዎች እና ደረጃ",
+      "mapPin": "የካርታ ፒን አካባቢ"
+    },
+    "planHighlights": {
+      "FREE": {
+        "0": "ሙሉ የሕዝብ መገለጫ",
+        "1": "እስከ 3 አገልግሎቶች",
+        "2": "ዕውቂያ እና ማህበራዊ ሚዲያ",
+        "3": "ግምገማዎች እና ደረጃ"
+      },
+      "BASIC": {
+        "0": "ሁሉም ነጻ ባህሪዎች",
+        "1": "እስከ 10 አገልግሎቶች",
+        "2": "10 ፖርትፎሊዮ ንጥሎች",
+        "3": "ሁሉም ማህበራዊ ሚዲያ"
+      },
+      "PRO": {
+        "0": "ሁሉም ቤዚክ ባህሪዎች",
+        "1": "በፍለጋ ውጤቶች ይታያሉ",
+        "2": "የተረጋገጠ ምልክት ዕጩ",
+        "3": "50 አገልግሎቶች እና ፖርትፎሊዮ"
+      },
+      "BUSINESS": {
+        "0": "ሁሉም ፕሮ ባህሪዎች",
+        "1": "ቀዳሚ ሥፍራ በፍለጋ",
+        "2": "ያልተወሰነ ሁሉም ነገር",
+        "3": "ቅድሚያ ማረጋገጫ"
+      }
+    },
+    "faq": {
+      "cancel_q": "በማንኛውም ጊዜ መሰረዝ ይቻላል?",
+      "cancel_a": "አዎ። ክፍያ ጊዜ እስኪያልቅ ድረስ እቅድዎ ንቁ ነው። ረጅም ጊዜ ውሎች ወይም ቅጣቶች የሉም።",
+      "payment_q": "ምን የክፍያ ዘዴዎች ያሉ?",
+      "payment_a": "ቴሌቢር፣ ሲቢኢ ቢር፣ አሞሌ እና ሁሉም ዋና ዋና የኢትዮጵያ የክፍያ ዘዴዎች በቻፓ።",
+      "downgrade_q": "ዝቅ ሲሉ ምን ይከሰታል?",
+      "downgrade_a": "ክፍያ ጊዜ እስኪያልቅ ድረስ ይደርሱበታል። ከዚያ ይዘቶቻዎ ይጠበቃሉ ነገር ግን ነጻ እቅድ ሊሚቶች ካለፉ ይደበቃሉ።"
+    }
+  },
+
+  "admin": {
+    "title": "አስተዳዳሪ",
+    "overview": "አጠቃላይ",
+    "users": "ተጠቃሚዎች",
+    "ads": "ማስታወቂያዎች",
+    "categories": "ምድቦች",
+    "subscriptions": "ምዝገባዎች",
+    "revenue": "ገቢ",
+    "analytics": "ትንተና",
+    "plans": "እቅዶች",
+    "platformHealth": "የመድረክ ጤና እና ዋና ዋና መለኪያዎች።",
+    "sections": {
+      "users": "ተጠቃሚዎች",
+      "revenueAndSubs": "ገቢ እና ምዝገባዎች",
+      "advertisements": "ማስታወቂያዎች",
+      "catalogueAlerts": "ካታሎግ እና ማስጠንቀቂያዎች",
+      "manage": "ያስተዳድሩ"
+    },
+    "stats": {
+      "totalUsers": "ጠቅላላ ተጠቃሚዎች",
+      "thisWeek": "+{{count}} ይህ ሳምንት",
+      "active": "ንቁ",
+      "suspended": "ታግዷል",
+      "new30Days": "አዲስ (30 ቀናት)",
+      "totalRevenue": "ጠቅላላ ገቢ",
+      "payments": "{{count}} ክፍያዎች",
+      "thisMonth": "ይህ ወር",
+      "currentMonth": "አሁን ያለ ወር",
+      "activeSubs": "ንቁ ምዝገባዎች",
+      "paidPlans": "የሚከፈሉ እቅዶች",
+      "pendingPayments": "በመጠባበቅ ላይ ያሉ ክፍያዎች",
+      "totalAds": "ጠቅላላ",
+      "publishedAds": "የታተሙ",
+      "draftAds": "ረቂቅ",
+      "pausedAds": "ታግዟል",
+      "expiredAds": "ጊዜ ያለፈ",
+      "archivedAds": "ተቀምጧል",
+      "newAds7d": "አዲስ ማስታወቂያዎች (7 ቀናት)",
+      "expiredSubs": "ጊዜ ያለፈ ምዝገባዎች",
+      "failedPayments": "ያልተሳኩ ክፍያዎች",
+      "categories": "ምድቦች",
+      "totalCategories": "{{count}} ጠቅላላ"
+    },
+    "manage": {
+      "userManagement": "የተጠቃሚ አስተዳደር",
+      "userManagementDesc": "ተጠቃሚዎችን ይመልከቱ፣ ይፈልጉ፣ ያግዱ ወይም ያሳድጉ",
+      "adModeration": "የማስታወቂያ ቁጥጥር",
+      "adModerationDesc": "ሁሉም ማስታወቂያዎችን ይፈትሹ እና ይቆጣጠሩ",
+      "categoriesDesc": "ምድቦችን ፍጠሩ፣ አርትዕ ያድርጉ፣ ያስቆሙ",
+      "subscriptionsDesc": "ሁሉም የተጠቃሚ ምዝገባ መዝገቦች",
+      "revenueDesc": "የክፍያ መዝገቦች እና የገቢ ዝርዝር",
+      "analyticsDesc": "የመድረክ አዝማሚያዎች እና የአጠቃቀም ሰንጠረዥ"
+    },
+    "loadFailed": "የዳሽቦርድ ስታቲስቲክስ ማጫን አልተሳካም።",
+    "totalUsers": "ጠቅላላ ተጠቃሚዎች",
+    "published": "የታተሙ",
+    "activeLabel": "ንቁ"
+  },
+
+  "common": {
+    "loading": "እየጫነ ነው…",
+    "error": "ስህተት ተፈጥሯል።",
+    "retry": "እንደገና ይሞክሩ",
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "delete": "ሰርዝ",
+    "edit": "አርትዕ",
+    "add": "ጨምር",
+    "close": "ዝጋ",
+    "back": "ተመለስ",
+    "next": "ቀጣይ",
+    "previous": "ቀዳሚ",
+    "yes": "አዎ",
+    "no": "አይ",
+    "confirm": "አረጋግጥ",
+    "search": "ፈልግ",
+    "filter": "አጣራ",
+    "sort": "አስቀምጥ",
+    "submit": "ያስገቡ",
+    "send": "ላክ",
+    "notFound": "ገጹ አልተገኘም",
+    "notFoundDesc": "የሚፈልጉት ገጽ የለም።",
+    "goHome": "ወደ መነሻ ሂድ",
+    "or": "ወይም",
+    "and": "እና",
+    "more": "ተጨማሪ",
+    "less": "ያነሰ",
+    "unlimited": "ያልተወሰነ",
+    "all": "ሁሉ",
+    "none": "ምንም",
+    "open": "ክፍት",
+    "closed": "ዝግ",
+    "gettingLocation": "አካባቢ እየፈለገ ነው…",
+    "gpsNotAvailable": "ጂፒኤስ አይገኝም",
+    "verifyEmail": {
+      "title": "ኢሜይልዎን ያረጋግጡ",
+      "success": "ኢሜይል ተረጋግጧል! መለያዎ አሁን ንቁ ነው።",
+      "failed": "ማረጋገጥ አልተሳካም። ማስፈንጠሪያው ሊያልቅ ይችላል።",
+      "resend": "የማረጋገጫ ኢሜይል ደግሞ ላክ"
+    },
+    "subscription": {
+      "successTitle": "ምዝገባ ተነቃቅቷል!",
+      "successDesc": "እቅድዎ አሁን ንቁ ነው። ለመጀመር ወደ ዳሽቦርድ ይሂዱ።",
+      "backToDashboard": "ወደ ዳሽቦርድ ሂድ"
+    },
+    "paymentCallback": {
+      "processing": "ክፍያዎ እየተሰናዳ ነው…",
+      "success": "ክፍያ ተሳክቷል!",
+      "failed": "ክፍያ አልተሳካም።",
+      "retry": "እንደገና ይሞክሩ"
+    }
+  },
+
+  "about": {
+    "title": "ስለ እኛ",
+    "subtitle": "የኢትዮጵያ የፍለጋ መድረክ — ብቁ ሰዎችን፣ ንግዶችን እና አገልግሎቶችን ከሚፈልጓቸው ሰዎች ጋር ያገናኛል።",
+    "mission": {
+      "heading": "ተልዕኳችን",
+      "body": "GebetaPro የሚፈልጉትን ሰው ወይም ንግድ ለማግኘት ቀላል ለማድረግ ታኩሷል። ፍሪላንሰር ይሁኑ፣ ሱቅ ባለቤት ወይም ትልቅ ድርጅት — ትክክለኛ ታዳሚ ፊት ለፊት የሚያቀርብ ሙያዊ መገለጫ ይሰጥዎታል።"
+    },
+    "story": {
+      "heading": "ታሪካችን",
+      "body": "ቀላሉን እውነታ ተመለካከትን። GebetaPro ለሁሉም የሚሆን መዋቅራዊ እና ሊፈለግ የሚችል ማውጫ ይገነባል።"
+    },
+    "platform": {
+      "heading": "የምንሰጠው",
+      "item1": "ነጻ እና ፕሪሚየም የንግድ መገለጫዎች",
+      "item2": "በምድብ እና አካባቢ ላይ የተመሰረተ ፍለጋ",
+      "item3": "ተግባራዊ የካርታ እይታ",
+      "item4": "ፖርትፎሊዮ፣ አገልግሎቶች፣ ምርቶች እና የሥራ ሰዓቶች",
+      "item5": "ለጨመረ ታይነት ተለዋዋጭ የደንብ ዕቅዶች"
+    },
+    "contact": {
+      "heading": "ያግኙን",
+      "body": "ጥያቄ አለዎት ወይም ከእኛ ጋር ለመተባበር ይፈልጋሉ?",
+      "link": "ቡድናችንን ያግኙ"
+    }
+  },
+
+  "contact": {
+    "title": "ያግኙን",
+    "subtitle": "ጥያቄ፣ አስተያየት ወይም የሽርክና ሃሳብ አለዎት? ከእርስዎ ለመስማት እንወዳለን።",
+    "formLabel": "የእውቂያ ቅጽ",
+    "info": {
+      "email": "ኢሜይል",
+      "location": "አካባቢ",
+      "response": "የምላሽ ጊዜ",
+      "responseBody": "ብዙውን ጊዜ በ1-2 የሥራ ቀናት ውስጥ እንመልሳለን።"
+    },
+    "form": {
+      "name": "ስምዎ",
+      "namePlaceholder": "ለምሳሌ ናትናኤል በርሃኑ",
+      "email": "ኢሜይል አድራሻ",
+      "subject": "ርዕሰ ጉዳይ",
+      "subjectPlaceholder": "ስለ ምን ነው?",
+      "message": "መልዕክት",
+      "messagePlaceholder": "እንዴት ልንረዳዎ እንችላለን…",
+      "submit": "መልዕክት ላክ"
+    },
+    "errors": {
+      "nameRequired": "ስም ያስፈልጋል",
+      "emailRequired": "ኢሜይል ያስፈልጋል",
+      "emailInvalid": "ትክክለኛ ኢሜይል ያስገቡ",
+      "messageRequired": "መልዕክት ያስፈልጋል"
+    },
+    "success": {
+      "title": "መልዕክት ተልኳል!",
+      "body": "ለደረሱን ምስጋና። በቅርቡ እንሰጥዎታለን።"
+    }
+  },
+
+  "privacy": {
+    "title": "የግላዊነት ፖሊሲ",
+    "lastUpdated": "መጨረሻ የዘመነበት",
+    "intro": "GebetaPro የGebetaPro መድረክን ያሰራል። ይህ ፖሊሲ አገልግሎቶቻችንን ሲጠቀሙ የግል መረጃዎን እንዴት እንሰበስብ እና እንጠብቅ እንደሆነ ያብራራል።",
+    "collect": {
+      "heading": "1. የምንሰበስበው መረጃ",
+      "intro": "ቀጥታ ከእርስዎ የምናገኘውን መረጃ ይሰበስባል፣ ይህም ያካትታል፦",
+      "item1": "የመለያ ምዝገባ ዝርዝሮች (ስም፣ ኢሜይል አድራሻ፣ ምስጥራዊ ቃል)",
+      "item2": "የመገለጫ መረጃ (የንግድ ስም፣ መግለጫ፣ ስልክ ቁጥር፣ አካባቢ፣ ምስሎች)",
+      "item3": "በክፍያ አቅራቢ ውስጥ ደህንነቱ የተጠበቀ የክፍያ መረጃ",
+      "item4": "ወደ እኛ የሚልኩት ደብዳቤዎች",
+      "auto": "እንዲሁም ኢፒ አድራሻ፣ የቡድን ዓይነት እና የተጎበኙ ገጾችን ያሉ መረጃዎችን ራሱ በራሱ እንሰበስባለን።"
+    },
+    "use": {
+      "heading": "2. መረጃዎን እንዴት እንጠቀምበታለን",
+      "item1": "መለያዎን እና መገለጫዎን ለመፍጠር እና ለማስተዳደር",
+      "item2": "የደንብ ክፍያዎችን ለማካሄድ",
+      "item3": "መገለጫዎን ለሌሎች ተጠቃሚዎች ለማሳየት",
+      "item4": "ማብሪያ ኢሜይሎችን ለመላክ",
+      "item5": "የመድረክ ባህሪያትን ለማሻሻል",
+      "item6": "ህጋዊ ግዴታዎችን ለማሟላት"
+    },
+    "share": {
+      "heading": "3. መረጃ ማጋራት",
+      "body": "የግል ዳታዎን አንሸጥም። ጥብቅ የሚስጥር ግዴታ ባለው አስተማማኝ አቅራቢዎች ጋር ሊካፈሉ ይችላሉ። ሕጉ ሲጠይቅ ደግሞ ሊሰጥ ይችላሉ።"
+    },
+    "public": {
+      "heading": "4. ለሕዝብ የሚታይ መገለጫ ዳታ",
+      "body": "ወደ ሕዝብ መገለጫዎ የሚጨምሩት መረጃ ለሁሉም ጎብኚዎች ይታያል። ምን ማሳተም እንደሚፈልጉ ያስቡ።"
+    },
+    "security": {
+      "heading": "5. የዳታ ደህንነት",
+      "body": "ኢንዱስትሪ-ደረጃ ደህንነት እርምጃዎችን ተግባራዊ እናደርጋለን፤ ሙሉ ዋስትና ሊሰጥ አይችልም።"
+    },
+    "rights": {
+      "heading": "6. መብቶችዎ",
+      "intro": "የሚከተሉት መብቶች አሉዎት፦",
+      "item1": "ዳሽቦርድዎ ላይ የግል መረጃዎን ለማዘመን",
+      "item2": "መለያዎ ለመሰረዝ ጥያቄ ለማቅረብ",
+      "item3": "ከማስተዋወቂያ ኢሜይሎች ለማስቆም",
+      "contact": "ይህን መብቶች ለመጠቀም፣ እባክዎ",
+      "contactLink": "ያግኙን"
+    },
+    "contact": {
+      "heading": "7. ያግኙን",
+      "body": "ስለዚህ ፖሊሲ ጥያቄ ካለዎት ደርሱን"
+    }
+  },
+
+  "terms": {
+    "title": "የአገልግሎት ውሎች",
+    "lastUpdated": "መጨረሻ የዘመነበት",
+    "intro": "GebetaPro ሲጠቀሙ ወይም ሲደርሱ፣ ለእነዚህ ውሎች ተስማምተዋል። ካልተስማሙ፣ መድረኩን አይጠቀሙ።",
+    "accounts": {
+      "heading": "1. መለያዎች",
+      "body": "ትክክለኛ እና ሙሉ መረጃ ያቅርቡ። ምስጥራዊ ቃሎችዎን ለጠብቅ እና ለሁሉም ተግባሮች ኃላፊ ናቸው።"
+    },
+    "content": {
+      "heading": "2. የተጠቃሚ ይዘት",
+      "body": "የሚለጥፉትን ይዘት ባለቤትነቱ ይጠበቃል። መድረኩን ለማሰራት ፈቃድ ይሰጡናል።",
+      "responsibility": "ይዘቱ ማሟላት ያለበት፦",
+      "item1": "ትክክለኛ እና አሳሳች ያልሆነ",
+      "item2": "የሦስተኛ ወገን ሃብቶች ሳይጥስ",
+      "item3": "አጸያፊ ወይም ህገ-ወጥ ቁሳቁስ ያልያዘ"
+    },
+    "prohibited": {
+      "heading": "3. የተከለከሉ ተግባሮች",
+      "intro": "ለሚከተሉት ያልተስማሙ ናቸው፦",
+      "item1": "መድረኩን ለህገ-ወጥ ዓላማ መጠቀም",
+      "item2": "ሐሰተኛ ወይም ሰው የሚወክሉ መገለጫዎች",
+      "item3": "ያልተፈቀደ ዳሳሽ ለማድረግ መሞከር",
+      "item4": "ያለ ፈቃዳችን ዳታ መሰብሰብ",
+      "item5": "መድረኩን ማወዛወዝ"
+    },
+    "subscriptions": {
+      "heading": "4. ምዝገባዎች እና ክፍያዎች",
+      "body": "አንዳንድ ባህሪያት ሊከፈልበት የሚችል ምዝገባ ይጠይቃሉ። ሁሉም ክፍያዎች በብር (ETB) ናቸው።"
+    },
+    "termination": {
+      "heading": "5. ማቋረጥ",
+      "body": "ውሎ የሚጥሱ አካሎትን ለማቆም ወይም ለመሰረዝ መብት አለን። ዳሽቦርድዎ ላይ መለያዎን በማናቸውም ጊዜ መሰረዝ ይችላሉ።"
+    },
+    "disclaimer": {
+      "heading": "6. የዋስትና ማስወገጃ",
+      "body": "GebetaPro ዋስትና ሳይሰጥ ይቀርባል። ቀጣይ ወይም ስህተት-አልባ ዋስትና አንሰጥም።"
+    },
+    "liability": {
+      "heading": "7. ኃላፊነት ወሰን",
+      "body": "ህጉ ከፍ ባለ ደረጃ ባይፈቅድ፣ GebetaPro ቀጥተኛ ያልሆኑ ጉዳዮች ኃላፊ አይሆንም።"
+    },
+    "changes": {
+      "heading": "8. የውሎች ለውጦች",
+      "body": "ይህን ውሎች ሊያዘምን ይችላል። ቁሳቁሳዊ ለውጦችን ያሳውቃዎታል።"
+    },
+    "contact": {
+      "heading": "9. ያግኙን",
+      "body": "ስለዚህ ውሎች ጥያቄ ካለዎት፣ እባክዎ",
+      "contactLink": "ያግኙን"
+    }
+  },
+
+  "common": {
+    "home": "መነሻ"
+  }
+}

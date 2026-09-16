@@ -1,0 +1,17 @@
+# Normalize line endings to LF for all text files.
+# This ensures consistent line endings across Windows, Mac, and Linux.
+* text=auto eol=lf
+
+# Explicitly binary — never touch these
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.svg  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.eot  binary
+*.pdf  binary
+*.zip  binary
