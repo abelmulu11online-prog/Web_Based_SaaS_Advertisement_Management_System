@@ -70,6 +70,25 @@ export async function findFreePlan() {
   return result.rows[0]
 }
 
+/**
+ * Assign the FREE plan to a user if they don't have a subscription row yet.
+ * Safe to call repeatedly due to ON CONFLICT DO NOTHING.
+ *
+ * @param {string} userId - UUID
+ * @returns {Promise<object|null>} combined subscription + plan row
+ */
+export async function assignFreePlan(userId) {
+  const freePlan = await findFreePlan()
+  if (!freePlan) return null
+  await pool.query(
+    `INSERT INTO user_subscriptions (user_id, plan_id, status)
+     VALUES ($1, $2, 'FREE')
+     ON CONFLICT (user_id) DO NOTHING`,
+    [userId, freePlan.id],
+  )
+  return findByUserId(userId)
+}
+
 // ── B. Subscription read ───────────────────────────────────────────────────────
 
 /**

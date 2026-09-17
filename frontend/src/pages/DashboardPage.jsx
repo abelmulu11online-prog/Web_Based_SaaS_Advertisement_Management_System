@@ -280,16 +280,16 @@ export default function DashboardPage() {
               {subscription.days_remaining != null && (
                 <p className="text-[12px] text-ink-2 mt-0.5">
                   {subscription.days_remaining > 0
-                    ? t('dashboard.subscription.daysRemaining', { days: subscription.days_remaining })
-                    : t('dashboard.subscription.expired')}
+                    ? t('dashboard.subscriptionCard.daysRemaining', { days: subscription.days_remaining })
+                    : t('dashboard.subscriptionCard.expired')}
                 </p>
               )}
             </div>
             <Link to="/pricing">
               <Button variant="ghost" size="sm">
                 {subscription.plan?.name === 'FREE'
-                  ? t('dashboard.subscription.upgrade')
-                  : t('dashboard.subscription.manage')}
+                  ? t('dashboard.subscriptionCard.upgrade')
+                  : t('dashboard.subscriptionCard.manage')}
               </Button>
             </Link>
           </div>

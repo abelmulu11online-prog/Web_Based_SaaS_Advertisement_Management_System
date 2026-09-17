@@ -18,41 +18,45 @@ async function createAdmin() {
   try {
     await client.query('BEGIN')
 
-    const email = 'natnaelzemene21@gmail.com'
+    const admins = [
+      { email: 'natnaelzemene21@gmail.com', name: 'Nathy', slug: 'nathy' },
+      { email: 'abelmulu88@gmail.com', name: 'Abel', slug: 'abel' },
+    ]
     const plainPassword = 'Admin@123'
     const passwordHash = await bcrypt.hash(plainPassword, 12)
 
-    // Upsert user with ADMIN role
-    const { rows } = await client.query(
-      `INSERT INTO users (email, password_hash, role, status)
-       VALUES ($1, $2, 'ADMIN', 'ACTIVE')
-       ON CONFLICT (email) DO UPDATE
-         SET password_hash = EXCLUDED.password_hash,
-             role          = 'ADMIN',
-             status        = 'ACTIVE'
-       RETURNING id, email, role`,
-      [email, passwordHash],
-    )
+    for (const adm of admins) {
+      const { rows } = await client.query(
+        `INSERT INTO users (email, password_hash, role, status, email_verified_at)
+         VALUES ($1, $2, 'ADMIN', 'ACTIVE', NOW())
+         ON CONFLICT (email) DO UPDATE
+           SET password_hash = EXCLUDED.password_hash,
+               role          = 'ADMIN',
+               status        = 'ACTIVE',
+               email_verified_at = COALESCE(users.email_verified_at, NOW())
+         RETURNING id, email, role`,
+        [adm.email, passwordHash],
+      )
 
-    const user = rows[0]
-    console.log(`[admin] User: ${user.email} | role: ${user.role} | id: ${user.id}`)
+      const user = rows[0]
+      console.log(`[admin] User: ${user.email} | role: ${user.role} | id: ${user.id}`)
 
-    // Upsert profile (display_name = Nathy, slug = nathy)
-    await client.query(
-      `INSERT INTO profiles (user_id, display_name, slug, is_published, is_verified)
-       VALUES ($1, 'Nathy', 'nathy', TRUE, TRUE)
-       ON CONFLICT (user_id) DO UPDATE
-         SET display_name = 'Nathy',
-             is_verified  = TRUE`,
-      [user.id],
-    )
-
-    console.log('[admin] Profile set: display_name=Nathy, slug=nathy')
+      await client.query(
+        `INSERT INTO profiles (user_id, display_name, slug, is_published, is_verified)
+         VALUES ($1, $2, $3, TRUE, TRUE)
+         ON CONFLICT (user_id) DO UPDATE
+           SET display_name = $2,
+               is_verified  = TRUE`,
+        [user.id, adm.name, adm.slug],
+      )
+    }
 
     await client.query('COMMIT')
-    console.log('[admin] Admin user created successfully.')
+    console.log('[admin] Admin users created/updated successfully.')
     console.log('[admin] Login credentials:')
-    console.log(`        Email   : ${email}`)
+    for (const adm of admins) {
+      console.log(`        Email   : ${adm.email}`)
+    }
     console.log(`        Password: ${plainPassword}`)
   } catch (err) {
     await client.query('ROLLBACK')

@@ -1,21 +1,18 @@
 /**
  * LoginPage.jsx
  *
- * Accessibility improvements:
- * - Every FormField now has a matching id so htmlFor wires label → input.
- * - Each Input has aria-describedby pointing to its field's error element id.
- * - Server error banner has role="alert" and aria-live="assertive".
- * - Eye-toggle button has a dynamic aria-label ("Show password" / "Hide password").
- * - <main id="main-content"> wraps page body so the skip-nav link works.
- * - autoComplete attributes retained for browser autofill.
+ * Clean, high-contrast international-standard authentication screen.
+ * - Crisp typography with high visibility and contrast
+ * - Distraction-free, accessible, responsive card layout
+ * - Seamless integration with Navbar and LanguageSelector
+ * - Fully preserves auth logic, JWT decoding, redirection, and verification resend
  */
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, CheckCircle2, ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Button } from '../components/ui/Button.jsx'
-import { FormField, Input } from '../components/ui/FormField.jsx'
 import { login, resendVerification } from '../features/auth/services/authService.js'
 
 export default function LoginPage() {
@@ -35,7 +32,7 @@ export default function LoginPage() {
   const [resendDone, setResendDone] = useState(false)
 
   function set(key, val) {
-    setForm(f => ({ ...f, [key]: val }))
+    setForm((f) => ({ ...f, [key]: val }))
     setError('')
     setErrorCode('')
     setResendDone(false)
@@ -43,7 +40,9 @@ export default function LoginPage() {
 
   function decodeJwtRole(token) {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+      const payload = JSON.parse(
+        atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+      )
       return payload?.role ?? null
     } catch {
       return null
@@ -52,11 +51,17 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.identifier || !form.password) { setError(t('auth.login.emailRequired')); return }
+    if (!form.identifier || !form.password) {
+      setError(t('auth.login.emailRequired'))
+      return
+    }
     setLoading(true)
     setResendDone(false)
     try {
-      const data = await login({ identifier: form.identifier, password: form.password })
+      const data = await login({
+        identifier: form.identifier.trim(),
+        password: form.password,
+      })
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
       const role = decodeJwtRole(data.accessToken)
@@ -85,35 +90,50 @@ export default function LoginPage() {
   }
 
   const isUnverified = errorCode === 'EMAIL_NOT_VERIFIED'
-  // Stable id for the server-error block so inputs can reference it
   const serverErrorId = 'login-server-error'
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       <Navbar />
 
-      <main id="main-content" className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[380px]">
+      <main
+        id="main-content"
+        className="flex-1 flex items-center justify-center px-4 py-12 sm:py-16"
+      >
+        <div className="w-full max-w-[440px]">
+          {/* Main Login Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-7 sm:p-10">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-[#1a6b5e] text-white flex items-center justify-center font-bold text-xl shadow-md shadow-[#1a6b5e]/25 mx-auto mb-4 select-none">
+                G
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {t('auth.login.title')}
+              </h1>
+              <p className="text-slate-600 text-[14.5px] mt-1.5 font-normal">
+                {t('auth.login.newAccount')}{' '}
+                <Link
+                  to="/register"
+                  className="text-[#1a6b5e] font-semibold hover:underline"
+                >
+                  {t('auth.login.createFree')}
+                </Link>
+              </p>
+            </div>
 
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-ink mb-1.5">{t('auth.login.title')}</h1>
-            <p className="text-sm text-ink-2">
-              {t('auth.login.newAccount')}{' '}
-              <Link to="/register" className="text-brand font-medium hover:underline">
-                {t('auth.login.createFree')}
-              </Link>
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate aria-label={t('auth.login.title')}>
-
+            {/* Email Verified Banner */}
             {justVerified && (
               <div
                 role="status"
                 aria-live="polite"
-                className="flex items-start gap-2.5 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-[13.5px] text-green-800"
+                className="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-[13.5px] text-emerald-900 font-medium mb-6"
               >
-                <CheckCircle2 size={16} className="text-green-600 mt-0.5 shrink-0" aria-hidden="true" />
+                <CheckCircle2
+                  size={16}
+                  className="text-emerald-600 mt-0.5 shrink-0"
+                  aria-hidden="true"
+                />
                 <span>
                   <strong>{t('auth.login.emailVerified')}</strong>{' '}
                   {t('auth.login.accountActive')}
@@ -121,107 +141,164 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Email field — id="login-email" wires label → input */}
-            <FormField
-              id="login-email"
-              label={t('auth.login.emailLabel')}
-              required
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-4.5"
+              noValidate
+              aria-label={t('auth.login.title')}
             >
-              <div className="relative">
-                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" aria-hidden="true" />
-                <Input
-                  id="login-email"
-                  type="email"
-                  name="identifier"
-                  placeholder={t('auth.login.emailPlaceholder')}
-                  value={form.identifier}
-                  onChange={e => set('identifier', e.target.value)}
-                  className="pl-9"
-                  autoComplete="email"
-                  autoFocus
-                  aria-describedby={error ? serverErrorId : undefined}
-                  aria-required="true"
-                />
-              </div>
-            </FormField>
-
-            {/* Password field */}
-            <FormField
-              id="login-password"
-              label={t('auth.login.passwordLabel')}
-              required
-            >
-              <div className="relative">
-                <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" aria-hidden="true" />
-                <Input
-                  id="login-password"
-                  type={showPass ? 'text' : 'password'}
-                  name="password"
-                  placeholder={t('auth.login.passwordPlaceholder')}
-                  value={form.password}
-                  onChange={e => set('password', e.target.value)}
-                  className="pl-9 pr-10"
-                  autoComplete="current-password"
-                  aria-describedby={error ? serverErrorId : undefined}
-                  aria-required="true"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(s => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
-                  aria-label={showPass ? t('auth.register.hidePass') : t('auth.register.showPass')}
-                  aria-controls="login-password"
+              {/* Email / Identifier Field */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="login-email"
+                  className="block text-[13.5px] font-semibold text-slate-800"
                 >
-                  {showPass ? <EyeOff size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}
-                </button>
+                  {t('auth.login.emailLabel')}
+                </label>
+                <div className="relative">
+                  <Mail
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id="login-email"
+                    type="email"
+                    name="identifier"
+                    placeholder={t('auth.login.emailPlaceholder')}
+                    value={form.identifier}
+                    onChange={(e) => set('identifier', e.target.value)}
+                    autoComplete="email"
+                    autoFocus
+                    required
+                    aria-describedby={error ? serverErrorId : undefined}
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-white border border-slate-300 text-slate-900 text-[14.5px] placeholder:text-slate-400 focus:border-[#1a6b5e] focus:ring-2 focus:ring-[#1a6b5e]/20 outline-none transition-all"
+                  />
+                </div>
               </div>
-            </FormField>
 
-            <div className="flex justify-end -mt-1">
-              <Link to="/forgot-password" className="text-[13px] text-ink-2 hover:text-brand transition-colors">
-                {t('auth.login.forgotPassword')}
-              </Link>
-            </div>
+              {/* Password Field */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="login-password"
+                    className="block text-[13.5px] font-semibold text-slate-800"
+                  >
+                    {t('auth.login.passwordLabel')}
+                  </label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-[12.5px] font-semibold text-[#1a6b5e] hover:underline"
+                  >
+                    {t('auth.login.forgotPassword')}
+                  </Link>
+                </div>
 
-            {/* Server error — role="alert" announces immediately; aria-live="assertive" */}
-            {error && (
-              <div
-                id={serverErrorId}
-                role="alert"
-                aria-live="assertive"
-                className="bg-danger-bg border border-red-200 rounded px-3.5 py-2.5 text-[13px] text-danger"
-              >
-                {/* ⚠ prefix so error is not communicated by color alone */}
-                <span aria-hidden="true">⚠ </span>{error}
-                {isUnverified && (
-                  <div className="mt-2 pt-2 border-t border-red-200">
-                    {resendDone ? (
-                      <p className="text-green-700 font-medium">{t('auth.login.verificationSent')}</p>
+                <div className="relative">
+                  <Lock
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id="login-password"
+                    type={showPass ? 'text' : 'password'}
+                    name="password"
+                    placeholder={t('auth.login.passwordPlaceholder')}
+                    value={form.password}
+                    onChange={(e) => set('password', e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    aria-describedby={error ? serverErrorId : undefined}
+                    className="w-full h-11 pl-10 pr-11 rounded-xl bg-white border border-slate-300 text-slate-900 text-[14.5px] placeholder:text-slate-400 focus:border-[#1a6b5e] focus:ring-2 focus:ring-[#1a6b5e]/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass((s) => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1"
+                    aria-label={
+                      showPass
+                        ? t('auth.register.hidePass')
+                        : t('auth.register.showPass')
+                    }
+                  >
+                    {showPass ? (
+                      <EyeOff size={16} aria-hidden="true" />
                     ) : (
-                      <button
-                        type="button"
-                        onClick={handleResendVerification}
-                        disabled={resendLoading}
-                        className="text-brand font-medium underline hover:no-underline disabled:opacity-50"
-                      >
-                        {resendLoading ? t('auth.login.sending') : t('auth.login.resendVerification')}
-                      </button>
+                      <Eye size={16} aria-hidden="true" />
                     )}
-                  </div>
-                )}
+                  </button>
+                </div>
               </div>
-            )}
 
-            <Button type="submit" variant="primary" size="lg" loading={loading} fullWidth className="mt-1">
-              {t('auth.login.loginBtn')}
-            </Button>
-          </form>
+              {/* Error Announcement Banner */}
+              {error && (
+                <div
+                  id={serverErrorId}
+                  role="alert"
+                  aria-live="assertive"
+                  className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-[13.5px] text-red-700 font-medium"
+                >
+                  <div className="flex items-start gap-2">
+                    <span aria-hidden="true" className="font-bold text-red-600">
+                      ⚠
+                    </span>
+                    <span className="flex-1">{error}</span>
+                  </div>
+                  {isUnverified && (
+                    <div className="mt-2.5 pt-2.5 border-t border-red-200 text-left">
+                      {resendDone ? (
+                        <p className="text-emerald-800 font-semibold">
+                          {t('auth.login.verificationSent')}
+                        </p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleResendVerification}
+                          disabled={resendLoading}
+                          className="text-[#1a6b5e] font-semibold underline hover:no-underline disabled:opacity-50"
+                        >
+                          {resendLoading
+                            ? t('auth.login.sending')
+                            : t('auth.login.resendVerification')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
-          <p className="text-center text-[12px] text-ink-3 mt-6">
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 mt-1 rounded-xl bg-[#1a6b5e] hover:bg-[#155a4e] text-white font-semibold text-[15px] shadow-md shadow-[#1a6b5e]/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>{t('auth.login.loginBtn')}</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Footer Terms */}
+          <p className="text-center text-[12.5px] text-slate-500 mt-6 leading-relaxed">
             {t('auth.login.termsNotice')}{' '}
-            <Link to="/terms" className="underline hover:text-ink-2">{t('auth.login.terms')}</Link>{' '}
+            <Link to="/terms" className="underline hover:text-slate-800 font-medium">
+              {t('auth.login.terms')}
+            </Link>{' '}
             {t('auth.login.and')}{' '}
-            <Link to="/privacy-policy" className="underline hover:text-ink-2">{t('auth.login.privacyPolicy')}</Link>
+            <Link
+              to="/privacy-policy"
+              className="underline hover:text-slate-800 font-medium"
+            >
+              {t('auth.login.privacyPolicy')}
+            </Link>
           </p>
         </div>
       </main>

@@ -105,14 +105,14 @@ export default function SubscriptionPage() {
                 )}
 
                 {/* Usage */}
-                <UsageBar used={sub.usage?.active_ads || 0} max={sub.plan.max_active_ads} />
+                <UsageBar used={sub.usage?.active_ads || 0} max={sub.plan?.max_active_ads || 5} />
 
                 {/* Plan limits */}
                 <div className="grid grid-cols-3 gap-3 pt-1">
                   {[
-                    { label: 'Active listings', value: sub.plan.max_active_ads },
-                    { label: 'Images per ad', value: sub.plan.max_images_per_ad },
-                    { label: 'Featured badge', value: sub.plan.is_featured ? 'Yes' : 'No' },
+                    { label: 'Active listings', value: sub.plan?.max_active_ads ?? '—' },
+                    { label: 'Images per ad', value: sub.plan?.max_images_per_ad ?? '—' },
+                    { label: 'Featured badge', value: sub.plan?.is_featured ? 'Yes' : 'No' },
                   ].map(({ label, value }) => (
                     <div key={label} className="bg-surface-2 rounded-lg px-3 py-2.5 text-center">
                       <p className="text-[11px] text-ink-3 mb-0.5">{label}</p>

@@ -8,15 +8,13 @@
  *   ti — ትግርኛ (Tigrinya)
  *
  * Renders a compact dropdown triggered by a globe button.
- * Works in light (default) and dark surface variants.
- *
- * GPS auto-detection note: the language may change after page load
- * when geolocation resolves. Manual selection always takes priority
- * and is persisted to localStorage.
+ * Includes GPS auto-detection option to automatically pick language
+ * based on user's region (e.g. Amhara → Amharic).
  */
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Globe, Check, ChevronDown } from 'lucide-react'
+import { Globe, Check, ChevronDown, MapPin, Loader2 } from 'lucide-react'
+import { detectAndApplyGeoLanguage } from '../../i18n.js'
 
 /** All supported languages with display metadata */
 const LANGUAGES = [
@@ -33,6 +31,7 @@ export function LanguageSelector({ className = '' }) {
   const { i18n, t }  = useTranslation()
   const current       = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0]
   const [open, setOpen] = useState(false)
+  const [detecting, setDetecting] = useState(false)
   const containerRef  = useRef(null)
 
   // Close on outside click or Escape
@@ -56,6 +55,16 @@ export function LanguageSelector({ className = '' }) {
       i18n.changeLanguage(code)
     }
     close()
+  }
+
+  async function handleAutoDetect() {
+    setDetecting(true)
+    try {
+      await detectAndApplyGeoLanguage(true)
+    } finally {
+      setDetecting(false)
+      close()
+    }
   }
 
   return (
@@ -94,12 +103,31 @@ export function LanguageSelector({ className = '' }) {
           aria-activedescendant={`lang-opt-${current.code}`}
           className={[
             'absolute right-0 top-[calc(100%+6px)] z-[200]',
-            'w-44 rounded-xl border border-border',
+            'w-48 rounded-xl border border-border',
             'bg-surface shadow-lg shadow-black/10',
             'py-1 overflow-hidden',
             'animate-fade-in',
           ].join(' ')}
         >
+          {/* GPS Auto-detect button */}
+          <li className="border-b border-border mb-1 pb-1">
+            <button
+              type="button"
+              onClick={handleAutoDetect}
+              disabled={detecting}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-brand hover:bg-brand-light/30 transition-colors disabled:opacity-50"
+            >
+              {detecting ? (
+                <Loader2 size={13} className="animate-spin text-brand" />
+              ) : (
+                <MapPin size={13} className="text-brand shrink-0" />
+              )}
+              <span className="truncate">
+                {detecting ? 'Detecting region…' : '📍 Auto-detect location'}
+              </span>
+            </button>
+          </li>
+
           {LANGUAGES.map(({ code, full, native, label }) => {
             const isActive = code === i18n.language
             return (
@@ -148,6 +176,7 @@ export function LanguageSelectorDark({ className = '' }) {
   const { i18n, t }   = useTranslation()
   const current        = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0]
   const [open, setOpen] = useState(false)
+  const [detecting, setDetecting] = useState(false)
   const containerRef   = useRef(null)
 
   const close = useCallback(() => setOpen(false), [])
@@ -170,6 +199,16 @@ export function LanguageSelectorDark({ className = '' }) {
       i18n.changeLanguage(code)
     }
     close()
+  }
+
+  async function handleAutoDetect() {
+    setDetecting(true)
+    try {
+      await detectAndApplyGeoLanguage(true)
+    } finally {
+      setDetecting(false)
+      close()
+    }
   }
 
   return (
@@ -203,12 +242,31 @@ export function LanguageSelectorDark({ className = '' }) {
           aria-label={t('lang.select', 'Language')}
           className={[
             'absolute right-0 top-[calc(100%+6px)] z-[200]',
-            'w-44 rounded-xl border border-white/20',
+            'w-48 rounded-xl border border-white/20',
             'bg-ink shadow-lg shadow-black/30',
             'py-1 overflow-hidden',
             'animate-fade-in',
           ].join(' ')}
         >
+          {/* GPS Auto-detect button */}
+          <li className="border-b border-white/10 mb-1 pb-1">
+            <button
+              type="button"
+              onClick={handleAutoDetect}
+              disabled={detecting}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-blue-300 hover:bg-white/10 transition-colors disabled:opacity-50"
+            >
+              {detecting ? (
+                <Loader2 size={13} className="animate-spin text-blue-300" />
+              ) : (
+                <MapPin size={13} className="text-blue-300 shrink-0" />
+              )}
+              <span className="truncate">
+                {detecting ? 'Detecting region…' : '📍 Auto-detect location'}
+              </span>
+            </button>
+          </li>
+
           {LANGUAGES.map(({ code, full, native, label }) => {
             const isActive = code === i18n.language
             return (

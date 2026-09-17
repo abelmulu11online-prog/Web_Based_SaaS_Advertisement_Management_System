@@ -55,11 +55,15 @@ export async function listPlans() {
  * @returns {Promise<object>}
  */
 export async function getMySubscription(userId) {
-  const subscription = await repo.findByUserId(userId)
+  let subscription = await repo.findByUserId(userId)
 
   if (!subscription) {
-    // This should never happen after migration 020 trigger is active,
-    // but we guard against users created before the trigger was added.
+    // If user was created before trigger or via seed without subscription,
+    // automatically assign the FREE plan.
+    subscription = await repo.assignFreePlan(userId)
+  }
+
+  if (!subscription) {
     throw createError(
       'Subscription record not found. Please contact support.',
       404,

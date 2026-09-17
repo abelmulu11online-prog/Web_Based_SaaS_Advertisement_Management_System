@@ -317,7 +317,7 @@
       "plan": "Karoora",
       "last30Days": "Guyyoota 30 darban"
     },
-    "subscription": {
+    "subscriptionCard": {
       "daysRemaining": "Guyyoota {{days}} hafan",
       "expired": "Dhumee",
       "upgrade": "Guddisi →",

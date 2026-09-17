@@ -231,9 +231,9 @@ export function DashboardLayout({ children, title }) {
   })
 
   const NAV = [
-    { to: '/dashboard',              label: t('dashboard.overview'),          icon: <LayoutDashboard size={15} aria-hidden="true" />, end: true },
-    { to: '/dashboard/profile',      label: t('dashboard.myProfile'),         icon: <User size={15} aria-hidden="true" /> },
-    { to: '/dashboard/subscription', label: t('dashboard.subscription'),      icon: <CreditCard size={15} aria-hidden="true" /> },
+    { to: '/dashboard',              label: typeof t('dashboard.overview') === 'string' ? t('dashboard.overview') : 'Overview',          icon: <LayoutDashboard size={15} aria-hidden="true" />, end: true },
+    { to: '/dashboard/profile',      label: typeof t('dashboard.myProfile') === 'string' ? t('dashboard.myProfile') : 'My Profile',         icon: <User size={15} aria-hidden="true" /> },
+    { to: '/dashboard/subscription', label: typeof t('dashboard.subscription') === 'string' ? t('dashboard.subscription') : 'Subscription', icon: <CreditCard size={15} aria-hidden="true" /> },
   ]
 
   const PROFILE_NAV = [
