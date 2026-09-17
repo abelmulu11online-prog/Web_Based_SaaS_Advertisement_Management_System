@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { MapPin, List, Search, SlidersHorizontal, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Footer } from '../components/layout/Footer.jsx'
 import { Button } from '../components/ui/Button.jsx'
@@ -18,6 +19,7 @@ import { findNearby } from '../features/locations/services/locationsService.js'
 import { useCategories } from '../features/profiles/hooks/useCategories.js'
 
 export default function DirectoryMapPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [categoryId, setCategoryId] = useState(searchParams.get('category_id') || '')
@@ -89,9 +91,11 @@ export default function DirectoryMapPage() {
             onChange={e => setCategoryId(e.target.value)}
             className="h-8 pl-2 pr-6 bg-canvas border border-border rounded-lg text-[13px] text-ink-2 outline-none focus:border-brand appearance-none cursor-pointer hidden sm:block"
           >
-            <option value="">All categories</option>
+            <option value="">{t('directory.allCategories')}</option>
             {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {t(`categories.${cat.name}`, { defaultValue: cat.name })}
+              </option>
             ))}
           </select>
 

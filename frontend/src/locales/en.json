@@ -2,6 +2,8 @@
   "lang": {
     "en": "English",
     "am": "አማርኛ",
+    "om": "Afaan Oromoo",
+    "ti": "ትግርኛ",
     "select": "Language"
   },
 
@@ -83,6 +85,15 @@
     "openMapView": "Open map view",
     "whyTitle": "Why GebetaPro?",
     "whySub": "One place for skilled people, businesses, and services across Ethiopia.",
+    "whyHeading": "A place to be found.",
+    "whyDescription": "Whether you are an electrician, a lawyer, a restaurant, a freelancer, or a shop owner — GebetaPro is where Ethiopia looks for you.",
+    "whyItem1Title": "Anyone can join",
+    "whyItem1Desc": "Tradespeople, creatives, professionals, shops, organisations. If you have something to offer, create your profile and be discovered — for free.",
+    "whyItem2Title": "Real reviews",
+    "whyItem2Desc": "Genuine ratings from real customers help people choose with confidence. No fake trust signals — just honest feedback that builds reputations.",
+    "whyItem3Title": "Direct contact",
+    "whyItem3Desc": "Phone, WhatsApp, Telegram, directions. Connect with anyone directly — no intermediary, no booking fees, no friction.",
+    "yourProfile": "Your profile",
     "getDiscoveredTitle": "Ready to get discovered?",
     "getDiscoveredSub": "Create your free profile today — no credit card required.",
     "startFreeProfile": "Start your free profile",

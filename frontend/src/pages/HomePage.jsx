@@ -820,11 +820,9 @@ export default function HomePage() {
                   leading-[1.08]
                 "
               >
-                A place to be found.{' '}
+                {t('home.whyHeading')}{' '}
                 <span className="text-ink-3 font-normal">
-                  Whether you are an electrician, a lawyer,
-                  a restaurant, a freelancer, or a shop owner —
-                  GebetaPro is where Ethiopia looks for you.
+                  {t('home.whyDescription')}
                 </span>
               </h2>
             </div>
@@ -837,12 +835,10 @@ export default function HomePage() {
                   01
                 </p>
                 <h3 className="text-[17px] font-bold text-ink mb-2 leading-snug">
-                  Anyone can join
+                  {t('home.whyItem1Title')}
                 </h3>
                 <p className="text-[14px] text-ink-2 leading-relaxed">
-                  Tradespeople, creatives, professionals, shops, organisations.
-                  If you have something to offer, create your profile and be
-                  discovered — for free.
+                  {t('home.whyItem1Desc')}
                 </p>
               </div>
 
@@ -851,12 +847,10 @@ export default function HomePage() {
                   02
                 </p>
                 <h3 className="text-[17px] font-bold text-ink mb-2 leading-snug">
-                  Real reviews
+                  {t('home.whyItem2Title')}
                 </h3>
                 <p className="text-[14px] text-ink-2 leading-relaxed">
-                  Genuine ratings from real customers help people choose
-                  with confidence. No fake trust signals — just honest
-                  feedback that builds reputations.
+                  {t('home.whyItem2Desc')}
                 </p>
               </div>
 
@@ -865,12 +859,10 @@ export default function HomePage() {
                   03
                 </p>
                 <h3 className="text-[17px] font-bold text-ink mb-2 leading-snug">
-                  Direct contact
+                  {t('home.whyItem3Title')}
                 </h3>
                 <p className="text-[14px] text-ink-2 leading-relaxed">
-                  Phone, WhatsApp, Telegram, directions. Connect with
-                  anyone directly — no intermediary, no booking fees,
-                  no friction.
+                  {t('home.whyItem3Desc')}
                 </p>
               </div>
             </div>
@@ -1013,8 +1005,8 @@ export default function HomePage() {
                       px-2 py-1 rounded-full
                     "
                   >
-                  Your profile
-                </div>
+                    {t('home.yourProfile')}
+                  </div>
                 </div>
               </div>
             </div>

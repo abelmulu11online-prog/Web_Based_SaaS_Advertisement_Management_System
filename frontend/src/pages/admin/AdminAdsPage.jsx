@@ -3,6 +3,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Trash2, ChevronDown, MapPin, Image, MoreHorizontal } from 'lucide-react'
 import { AdminLayout }   from '../../components/layout/AdminLayout.jsx'
 import { Badge }         from '../../components/ui/Badge.jsx'
@@ -240,7 +241,7 @@ export default function AdminAdsPage() {
             className="w-full sm:flex-1 sm:max-w-xs"
           />
           <FilterSelect value={status} onChange={setStatus} options={STATUS_OPTS} placeholder="All statuses" />
-          <FilterSelect value={catId}  onChange={setCatId}  options={catOpts}    placeholder="All categories" />
+          <FilterSelect value={catId}  onChange={setCatId}  options={catOpts}    placeholder={t('directory.allCategories')} />
           {(search || status || catId) && (
             <button
               onClick={() => { setSearch(''); setStatus(''); setCatId('') }}
